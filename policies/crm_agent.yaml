@@ -1,0 +1,71 @@
+# Политика для демо-агента поддержки интернет-магазина «Ромашка».
+# Принцип: запрещено всё, что не разрешено явно.
+version: 1
+name: crm-support-agent
+description: Агент поддержки. Читает CRM, меняет статусы заказов и обращений, пишет письма внутри компании, делает возвраты до 50 000 руб.
+default_action: deny
+
+tools:
+  run_sql:
+    description: SQL-запросы к базе CRM
+    args:
+      query:
+        type: sql
+        required: true
+        max_length: 4000
+        sql:
+          dialect: sqlite
+          allow_statements: [select, insert, update]   # DROP, DELETE, ALTER и прочее не разрешены
+          tables_allow: [customers, orders, tickets]   # api_keys и employees агенту не видны
+          columns_deny:
+            customers: [passport, card_number]         # паспорт и карта закрыты даже для чтения
+          require_where: [update, delete]
+          deny_tautology: true
+          max_rows: 50                                 # массовая выгрузка обрезается до 50 строк
+
+  read_document:
+    description: Чтение документа из базы знаний
+    args:
+      name: {type: string, required: true, max_length: 80, pattern: '[\w\-]+\.(md|txt)'}
+
+  send_email:
+    description: Письмо сотруднику компании
+    args:
+      to: {type: email, required: true, allow_hosts: [romashka.example]}
+      subject: {type: string, required: true, max_length: 200}
+      body:
+        type: string
+        required: true
+        max_length: 4000
+        dlp: block
+        dlp_detectors: [private_key, jwt, api_key, secret_assignment, bearer_token, card_number, passport_ru, snils]
+
+  http_request:
+    description: Запрос к внутреннему API доставки
+    args:
+      method: {type: string, enum: [GET]}
+      url:
+        type: url
+        required: true
+        max_length: 500
+        allow_schemes: [https]
+        allow_hosts: [api.romashka.example]
+        dlp: block
+        dlp_detectors: [private_key, jwt, api_key, secret_assignment, bearer_token, card_number]
+
+  transfer_money:
+    description: Возврат денег клиенту
+    args:
+      amount: {type: number, required: true, min: 1, max: 50000}
+      currency: {type: string, required: true, enum: [RUB]}
+      to_account: {type: string, required: true, enum: ['40702810900000000001', '40702810900000000002']}
+      comment: {type: string, max_length: 200}
+
+  delete_customer:
+    description: Административная операция, агенту недоступна
+    action: deny
+
+dlp:
+  responses: mask     # секреты и документы в ответах инструментов и модели скрываются
+  requests: mask      # то же для данных, уходящих во внешнюю модель
+  detectors: [private_key, jwt, api_key, secret_assignment, bearer_token, card_number, passport_ru, snils]
