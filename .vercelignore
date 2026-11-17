@@ -1,0 +1,14 @@
+# В развёрнутое приложение попадает только код шлюза и политики.
+# Исходные материалы и документы команды (в них есть личные контакты) не выкладываются.
+source/
+deliverables/
+deck/
+docs/
+tests/
+bench/
+data/
+Dockerfile
+docker-compose.yml
+.dockerignore
+requirements-dev.txt
+PLAN.md

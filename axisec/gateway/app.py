@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -109,10 +110,16 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None) -> F
     async def stream(request: Request):
         queue = app.state.audit.subscribe()
 
+        # На бессерверных платформах долгие соединения держать нельзя: поток закрывается,
+        # а браузер (EventSource) сам подключается заново.
+        deadline = time.monotonic() + 25 if os.getenv("VERCEL") else None
+
         async def gen():
             try:
                 yield ": connected\n\n"
                 while not await request.is_disconnected():
+                    if deadline is not None and time.monotonic() > deadline:
+                        break
                     try:
                         event = await asyncio.wait_for(queue.get(), timeout=10)
                         yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"

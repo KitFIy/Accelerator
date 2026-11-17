@@ -93,3 +93,4 @@ Axisec — шлюз (Policy Enforcement Point) между ИИ-агентом и
 - 2026-11-17 — подачи 3 и 4: дашборд, Red Team, замеры, Docker, README, `docs/02_mvp_results.md`. 147 тестов проходят.
 - 2026-11-17 — подачи 5 и 6: `deliverables/Axisec_full.pptx` (12 слайдов), `Axisec_pitch_5min.pptx` (7 слайдов), PDF-копии, `speech_5min.md`, `qa_jury.md`. Сборка: `python deck/build_decks.py`.
 - 2026-11-17 — подача 7: `deliverables/Axisec_passport.docx`. Все подачи закрыты.
+- 2026-11-17 — деплой на Vercel: добавлены `main.py` (точка входа `app`) и `.vercelignore`.
