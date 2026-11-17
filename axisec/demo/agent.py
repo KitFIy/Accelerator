@@ -10,9 +10,11 @@ SYSTEM_PROMPT = ("Ты агент поддержки интернет-магаз
                  "ищи данные в CRM, меняй статусы заказов, оформляй возвраты.")
 
 
-async def _rpc(client: httpx.AsyncClient, url: str, method: str, params: dict | None, msg_id: int) -> dict:
+async def _rpc(client: httpx.AsyncClient, url: str, method: str, params: dict | None, msg_id: int,
+               headers: dict | None = None) -> dict:
     payload = {"jsonrpc": "2.0", "id": msg_id, "method": method, "params": params or {}}
-    r = await client.post(url, json=payload, headers={"accept": "application/json, text/event-stream"})
+    r = await client.post(url, json=payload,
+                          headers={"accept": "application/json, text/event-stream", **(headers or {})})
     r.raise_for_status()
     return r.json()
 
@@ -21,7 +23,7 @@ async def run_agent(client: httpx.AsyncClient, llm_url: str, mcp_url: str, promp
                     session: str = "", max_steps: int = 8) -> dict:
     """Возвращает шаги агента и весь текст, который он получил от инструментов и модели."""
     headers = {"x-axisec-session": session} if session else {}
-    listed = await _rpc(client, mcp_url, "tools/list", None, 1)
+    listed = await _rpc(client, mcp_url, "tools/list", None, 1, headers)
     tools = [{"type": "function", "function": {"name": t["name"], "description": t.get("description", ""),
                                                "parameters": t.get("inputSchema", {})}}
              for t in listed.get("result", {}).get("tools", [])]

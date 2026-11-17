@@ -1,0 +1,8 @@
+.git
+source
+deliverables
+docs
+tests
+bench
+**/__pycache__
+data

@@ -1,1 +1,305 @@
-<!doctype html><title>Axisec</title><p>dashboard</p>
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Axisec — контроль действий ИИ-агентов</title>
+<style>
+:root{
+  --bg:#0a1120;--panel:#101a2f;--panel2:#0d1628;--line:#1e2c4a;--text:#e8eef9;--muted:#8a9bbb;
+  --accent:#2dd4bf;--blue:#6aa8ff;--red:#ff7b7b;--amber:#f8c555;--green:#3ddc97;--violet:#b79cff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+button,select,textarea,input{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:20px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--panel2);position:sticky;top:0;z-index:5}
+.logo{font-weight:800;font-size:21px;letter-spacing:.04em}
+.logo span{color:var(--accent)}
+.sub{color:var(--muted);font-size:13px}
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:13px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(61,220,151,.18)}
+nav{display:flex;gap:4px;margin-left:auto}
+nav button{background:none;border:0;padding:8px 14px;border-radius:8px;color:var(--muted);cursor:pointer;font-weight:600}
+nav button:hover{color:var(--text)}
+nav button.on{background:#17264a;color:var(--text)}
+main{padding:22px 24px 60px;max-width:1500px;margin:0 auto}
+section{display:none}section.on{display:block}
+h2{font-size:17px;margin:0 0 4px}
+.hint{color:var(--muted);font-size:13.5px;margin:0 0 16px;max-width:900px}
+.grid{display:grid;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:16px}
+.kpi b{display:block;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:13px}
+.kpi.red b{color:var(--red)}.kpi.green b{color:var(--green)}.kpi.amber b{color:var(--amber)}.kpi.teal b{color:var(--accent)}
+.btn{background:var(--accent);color:#04201c;border:0;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:wait}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--text);font-weight:600}
+.btn.ghost:hover{border-color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid #16223c;vertical-align:top}
+.scroll{overflow-x:auto}
+code,.mono{font-family:var(--mono);font-size:12.5px}
+.badge{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;white-space:nowrap}
+.b-block{background:rgba(255,123,123,.14);color:var(--red)}
+.b-allow{background:rgba(61,220,151,.13);color:var(--green)}
+.b-modify{background:rgba(248,197,85,.14);color:var(--amber)}
+.b-mask,.b-hide{background:rgba(183,156,255,.15);color:var(--violet)}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:0 6px;margin:1px 3px 1px 0;font-size:11.5px;color:var(--muted);white-space:nowrap}
+.stand{grid-template-columns:330px 1fr;align-items:start}
+.sc{display:block;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:9px;padding:8px 10px;cursor:pointer}
+.sc:hover{background:#15213d}
+.sc.on{background:#17264a;border-color:#2b4379}
+.sc small{display:block;color:var(--muted);font-size:12px}
+.sc .id{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-right:6px}
+.grp{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px 6px}
+.prompt{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;white-space:pre-wrap;font-family:var(--mono);font-size:13px;margin:10px 0 14px}
+.duo{grid-template-columns:1fr 1fr}
+.col h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
+.col.off{border-top:3px solid var(--red)}.col.on{border-top:3px solid var(--accent)}
+.step{border-left:3px solid var(--line);padding:6px 0 6px 12px;margin:0 0 10px}
+.step.err{border-color:var(--red)}.step.ok{border-color:#2b4379}
+.step .t{font-weight:700;font-size:13.5px}
+.step pre{margin:4px 0 0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12.5px;color:#c6d3ec}
+.step .res{color:var(--muted)}
+.verdict{border-radius:10px;padding:12px 14px;margin-top:12px;font-weight:600}
+.verdict.bad{background:rgba(255,123,123,.12);border:1px solid rgba(255,123,123,.4);color:#ffb3b3}
+.verdict.good{background:rgba(61,220,151,.1);border:1px solid rgba(61,220,151,.35);color:#9af0c8}
+.verdict ul{margin:6px 0 0 18px;padding:0;font-weight:500}
+.dec{font-size:13px;margin-top:10px;color:var(--muted)}
+.dec div{margin:4px 0}
+textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px;font-family:var(--mono);font-size:13px;min-height:90px;resize:vertical}
+select{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+pre.yaml{margin:0;white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;color:#c6d3ec;max-height:640px;overflow:auto}
+.empty{color:var(--muted);padding:18px 4px}
+@media (max-width:1000px){.stand,.duo{grid-template-columns:1fr}nav{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">AXI<span>SEC</span></div>
+    <div class="sub">Детерминированный контроль действий ИИ-агентов</div>
+  </div>
+  <span class="pill"><span class="dot"></span><span id="health">подключение…</span></span>
+  <nav>
+    <button data-tab="stand" class="on">Стенд</button>
+    <button data-tab="monitor">Монитор</button>
+    <button data-tab="check">Проверка вызова</button>
+    <button data-tab="redteam">Red Team</button>
+    <button data-tab="policy">Политика</button>
+  </nav>
+</header>
+<main>
+
+<section id="stand" class="on">
+  <h2>Стенд: один и тот же агент без шлюза и через шлюз</h2>
+  <p class="hint">Агент работает с базой интернет-магазина, почтой и платежами. Модель на стенде намеренно «послушная»: выполняет любую найденную инструкцию. Ущерб считается по фактическому состоянию базы и журналов, а не по словам шлюза.</p>
+  <div class="grid stand">
+    <div class="card" id="sclist"></div>
+    <div>
+      <div class="row" style="margin-top:0">
+        <button class="btn" id="runBoth">Запустить сценарий</button>
+        <span class="sub" id="sctitle"></span>
+      </div>
+      <div class="prompt" id="scprompt"></div>
+      <div class="grid duo">
+        <div class="card col off"><h3>Без защиты</h3><div id="resOff" class="empty">Выберите сценарий и нажмите «Запустить».</div></div>
+        <div class="card col on"><h3>Через Axisec</h3><div id="resOn" class="empty">Здесь появятся шаги агента и решения шлюза.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="monitor">
+  <h2>Монитор</h2>
+  <p class="hint">Каждое решение шлюза в реальном времени: что агент хотел сделать, что решено и по какому правилу.</p>
+  <div class="grid kpis" id="kpis"></div>
+  <div class="card">
+    <div class="row" style="margin-top:0;justify-content:space-between">
+      <b>Журнал решений</b>
+      <button class="btn ghost" id="clear">Очистить журнал</button>
+    </div>
+    <div class="scroll"><table><thead><tr><th>Время</th><th>Канал</th><th>Инструмент</th><th>Решение</th><th>Правило</th><th>Причина</th><th>OWASP</th><th>мкс</th></tr></thead><tbody id="events"></tbody></table></div>
+  </div>
+</section>
+
+<section id="check">
+  <h2>Проверка вызова</h2>
+  <p class="hint">Введите вызов инструмента так, как его сформировала бы модель, и посмотрите решение. Попробуйте обойти защиту: регистр, комментарии, вложенные запросы.</p>
+  <div class="card">
+    <div class="row" style="margin-top:0">
+      <select id="ctool"></select>
+      <span class="sub">аргументы в формате JSON</span>
+    </div>
+    <textarea id="cargs" spellcheck="false"></textarea>
+    <div class="row" id="examples"></div>
+    <div class="row"><button class="btn" id="cbtn">Проверить</button></div>
+    <div id="cres"></div>
+  </div>
+</section>
+
+<section id="redteam">
+  <h2>Red Team: полный прогон</h2>
+  <p class="hint">Каждый сценарий выполняется дважды: без шлюза и через шлюз. Дополнительно движок проверяется на корпусе прямых вызовов (атаки и легитимные запросы).</p>
+  <div class="row"><button class="btn" id="rtbtn">Запустить полный прогон</button><span class="sub" id="rtinfo"></span></div>
+  <div class="grid kpis" id="rtkpis"></div>
+  <div class="card scroll"><table><thead><tr><th>ID</th><th>Сценарий</th><th>OWASP</th><th>Без защиты</th><th>Через Axisec</th><th>Сработало</th></tr></thead><tbody id="rtrows"><tr><td colspan="6" class="empty">Прогон ещё не запускался.</td></tr></tbody></table></div>
+</section>
+
+<section id="policy">
+  <h2>Политика</h2>
+  <p class="hint" id="pdesc"></p>
+  <div class="grid" style="grid-template-columns:minmax(260px,360px) 1fr;align-items:start">
+    <div class="card"><b>Инструменты</b><div id="ptools" style="margin-top:10px"></div></div>
+    <div class="card"><pre class="yaml" id="pyaml"></pre></div>
+  </div>
+</section>
+
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const api = async (path, body) => {
+  const r = await fetch(path, body === undefined ? {} : {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(body)});
+  return r.json();
+};
+const ACTION = {block: "Заблокировано", allow: "Разрешено", modify: "Изменено", mask: "Скрыто", hide: "Скрыто"};
+const badge = (a) => `<span class="badge b-${a}">${ACTION[a] || a}</span>`;
+const tags = (list) => (list || []).map((t) => `<span class="tag">${esc(t)}</span>`).join("");
+
+// ---------- вкладки
+document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("on", x === b));
+  document.querySelectorAll("section").forEach((s) => s.classList.toggle("on", s.id === b.dataset.tab));
+  if (b.dataset.tab === "monitor") refreshMonitor();
+});
+
+// ---------- стенд
+let scenarios = [], current = null;
+function renderScenarios() {
+  const group = (kind, title) => `<div class="grp">${title}</div>` + scenarios.filter((s) => s.kind === kind).map((s) =>
+    `<button class="sc ${current && current.id === s.id ? "on" : ""}" data-id="${s.id}"><span class="id">${s.id}</span>${esc(s.title)}<small>${tags(s.owasp)}</small></button>`).join("");
+  $("sclist").innerHTML = group("attack", "Атаки") + group("task", "Обычная работа");
+  $("sclist").querySelectorAll(".sc").forEach((b) => b.onclick = () => select(b.dataset.id));
+}
+function select(id) {
+  current = scenarios.find((s) => s.id === id);
+  $("sctitle").textContent = current.note || "";
+  $("scprompt").textContent = current.prompt;
+  $("resOff").innerHTML = '<div class="empty">Нажмите «Запустить сценарий».</div>';
+  $("resOn").innerHTML = '<div class="empty">Нажмите «Запустить сценарий».</div>';
+  renderScenarios();
+}
+function renderRun(run) {
+  const steps = run.steps.map((s) => s.type === "answer"
+    ? `<div class="step ${s.content.includes("[Axisec]") ? "err" : "ok"}"><div class="t">Ответ агента</div><pre>${esc(s.content)}</pre></div>`
+    : `<div class="step ${s.error ? "err" : "ok"}"><div class="t">${esc(s.tool)}</div><pre>${esc(s.args.query || JSON.stringify(s.args))}</pre><pre class="res">→ ${esc(s.result)}</pre></div>`).join("");
+  const shown = run.decisions.filter((d) => d.action !== "allow");
+  const dec = shown.length ? `<div class="dec"><b>Решения шлюза</b>${shown.map((d) =>
+    `<div>${badge(d.action)} <code>${esc(d.rule)}</code> ${esc(d.reason)} ${d.latency_us ? `· ${Math.round(d.latency_us)} мкс` : ""}</div>`).join("")}</div>` : "";
+  let verdict;
+  if (run.harms.length) verdict = `<div class="verdict bad">Ущерб нанесён<ul>${run.harms.map((h) => `<li>${esc(h)}</li>`).join("")}</ul></div>`;
+  else if (run.kind === "task") verdict = `<div class="verdict good">${run.done ? "Задача выполнена, ущерба нет" : "Задача не выполнена"}</div>`;
+  else verdict = `<div class="verdict good">Ущерба нет: база, почта и счета не затронуты</div>`;
+  return steps + dec + verdict;
+}
+$("runBoth").onclick = async () => {
+  if (!current) return;
+  $("runBoth").disabled = true;
+  $("resOff").innerHTML = $("resOn").innerHTML = '<div class="empty">Выполняется…</div>';
+  try {
+    const off = await api("/api/demo/run", {id: current.id, protected: false});
+    $("resOff").innerHTML = renderRun(off);
+    const on = await api("/api/demo/run", {id: current.id, protected: true});
+    $("resOn").innerHTML = renderRun(on);
+  } finally { $("runBoth").disabled = false; }
+};
+
+// ---------- монитор
+function eventRow(e) {
+  const t = new Date(e.ts * 1000).toLocaleTimeString("ru-RU");
+  const args = e.args && e.args.query ? e.args.query : JSON.stringify(e.args || {});
+  return `<tr><td class="mono">${t}</td><td>${esc(e.channel)}</td><td><code>${esc(e.tool)}</code><div class="sub mono">${esc(args.slice(0, 110))}</div></td><td>${badge(e.action)}</td><td><code>${esc(e.rule)}</code></td><td>${esc(e.reason)}</td><td>${tags(e.owasp)}</td><td class="mono">${e.latency_us ? Math.round(e.latency_us) : ""}</td></tr>`;
+}
+async function refreshMonitor() {
+  const [stats, events] = await Promise.all([api("/api/stats"), api("/api/events?limit=150")]);
+  const a = stats.actions || {};
+  $("kpis").innerHTML = [
+    ["", stats.total, "решений в журнале"], ["red", a.block || 0, "заблокировано"], ["amber", a.modify || 0, "изменено (LIMIT)"],
+    ["", (a.mask || 0) + (a.hide || 0), "скрыто (DLP, инструменты)"], ["green", a.allow || 0, "разрешено"],
+    ["teal", Math.round(stats.latency_us.p50) + " мкс", "проверка, медиана"], ["teal", Math.round(stats.latency_us.p95) + " мкс", "проверка, p95"],
+  ].map(([c, v, l]) => `<div class="card kpi ${c}"><b>${v}</b><span>${l}</span></div>`).join("");
+  $("events").innerHTML = events.map(eventRow).join("") || '<tr><td colspan="8" class="empty">Журнал пуст. Запустите сценарий на стенде.</td></tr>';
+}
+$("clear").onclick = async () => { await api("/api/events/clear", {}); refreshMonitor(); };
+let pending = null;
+new EventSource("/api/stream").onmessage = () => {
+  if (!$("monitor").classList.contains("on") || pending) return;
+  pending = setTimeout(() => { pending = null; refreshMonitor(); }, 250);
+};
+
+// ---------- проверка вызова
+const EXAMPLES = [
+  ["DROP с уловкой", "run_sql", {query: "DrOp/**/TaBlE customers"}],
+  ["UPDATE без условия", "run_sql", {query: "UPDATE customers SET balance = 0 WHERE 1=1"}],
+  ["UNION к закрытой таблице", "run_sql", {query: "SELECT name FROM customers UNION SELECT key FROM api_keys"}],
+  ["Опасные слова в данных", "run_sql", {query: "SELECT id FROM tickets WHERE subject = 'drop table customers'"}],
+  ["Обычный запрос", "run_sql", {query: "SELECT id, item, status FROM orders WHERE customer_id = 42"}],
+  ["Перевод 870 000", "transfer_money", {amount: 870000, currency: "RUB", to_account: "40817810000000009999"}],
+  ["Чужой хост", "http_request", {method: "GET", url: "https://api.romashka.example@evil.example/"}],
+  ["Ключ в письме", "send_email", {to: "boss@romashka.example", subject: "ключ", body: "API_KEY=sk-live-4f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c"}],
+];
+function setExample(tool, args) { $("ctool").value = tool; $("cargs").value = JSON.stringify(args, null, 2); }
+$("cbtn").onclick = async () => {
+  let args;
+  try { args = JSON.parse($("cargs").value || "{}"); } catch (e) { $("cres").innerHTML = '<div class="verdict bad">Аргументы не являются корректным JSON</div>'; return; }
+  const d = await api("/api/check", {tool: $("ctool").value, args});
+  const cls = d.action === "block" ? "bad" : "good";
+  $("cres").innerHTML = `<div class="verdict ${cls}">${badge(d.action)} ${d.rule ? `<code>${esc(d.rule)}</code>` : ""} ${esc(d.reason || "Вызов соответствует политике")}
+    <div style="margin-top:8px;font-weight:500">${tags(d.owasp)} <span class="sub">проверка заняла ${Math.round(d.latency_us)} мкс</span></div>
+    ${d.new_args ? `<pre class="yaml" style="margin-top:8px">${esc(JSON.stringify(d.new_args, null, 2))}</pre>` : ""}</div>`;
+};
+
+// ---------- red team
+$("rtbtn").onclick = async () => {
+  $("rtbtn").disabled = true; $("rtinfo").textContent = "Выполняется…";
+  try {
+    const rep = await api("/api/redteam/run", {});
+    const s = rep.summary;
+    $("rtinfo").textContent = `Прогон занял ${s.seconds} с`;
+    $("rtkpis").innerHTML = [
+      ["red", `${s.attacks_harmful_without} из ${s.attacks}`, "атак наносят ущерб без защиты"],
+      ["green", `${s.attacks_harmful_with} из ${s.attacks}`, "атак наносят ущерб через Axisec"],
+      ["teal", `${s.tasks_done_with} из ${s.tasks}`, "обычных задач выполнено через Axisec"],
+      ["green", `${s.corpus_blocked} из ${s.corpus_attacks}`, "опасных вызовов корпуса заблокировано"],
+      ["teal", `${s.corpus_passed} из ${s.corpus_benign}`, "легитимных вызовов корпуса пропущено"],
+    ].map(([c, v, l]) => `<div class="card kpi ${c}"><b>${v}</b><span>${l}</span></div>`).join("");
+    $("rtrows").innerHTML = rep.rows.map((r) => {
+      const cell = (harms, done) => r.kind === "task"
+        ? (done && !harms.length ? '<span class="badge b-allow">выполнено</span>' : '<span class="badge b-block">не выполнено</span>')
+        : (harms.length ? `<span class="badge b-block">ущерб</span><div class="sub">${harms.map(esc).join("; ")}</div>` : '<span class="badge b-allow">ущерба нет</span>');
+      return `<tr><td class="mono">${r.id}</td><td>${esc(r.title)}</td><td>${tags(r.owasp)}</td><td>${cell(r.harms_off, r.done_off)}</td><td>${cell(r.harms_on, r.done_on)}</td><td>${r.rules.map((x) => `<code>${esc(x)}</code>`).join(" ")}</td></tr>`;
+    }).join("");
+  } finally { $("rtbtn").disabled = false; }
+};
+
+// ---------- старт
+(async () => {
+  const [h, p, sc] = await Promise.all([api("/api/health"), api("/api/policy"), api("/api/demo/scenarios")]);
+  $("health").textContent = `политика «${h.policy}» · v${h.version}`;
+  $("pdesc").textContent = `${p.description} Действие по умолчанию: ${p.default_action === "deny" ? "запрет" : "разрешение"}.`;
+  $("pyaml").textContent = p.yaml;
+  $("ptools").innerHTML = p.tools.map((t) => `<div style="margin:8px 0">${badge(t.action === "deny" ? "block" : "allow")} <code>${esc(t.name)}</code><div class="sub">${esc(t.description)}</div></div>`).join("");
+  $("ctool").innerHTML = p.tools.map((t) => `<option>${esc(t.name)}</option>`).join("") + "<option>exec_shell</option>";
+  $("examples").innerHTML = EXAMPLES.map((e, i) => `<button class="btn ghost" data-i="${i}">${esc(e[0])}</button>`).join("");
+  $("examples").querySelectorAll("button").forEach((b) => b.onclick = () => setExample(EXAMPLES[b.dataset.i][1], EXAMPLES[b.dataset.i][2]));
+  setExample(EXAMPLES[0][1], EXAMPLES[0][2]);
+  scenarios = sc; select("A01");
+})();
+</script>
+</body>
+</html>

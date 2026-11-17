@@ -1,0 +1,20 @@
+services:
+  axisec:
+    build: .
+    image: axisec:0.1.0
+    ports:
+      - "8080:8080"
+    volumes:
+      - axisec-data:/data
+      - ./policies:/app/policies:ro
+    environment:
+      AXISEC_POLICY: /app/policies/crm_agent.yaml
+      # Реальная модель вместо имитатора (любой OpenAI-совместимый API):
+      # AXISEC_LLM_UPSTREAM: https://llm.example/v1
+      # AXISEC_LLM_API_KEY: ${LLM_API_KEY}
+      # Реальные MCP-серверы:
+      # AXISEC_MCP_UPSTREAMS: '{"crm": "http://crm-mcp:9000/mcp"}'
+    restart: unless-stopped
+
+volumes:
+  axisec-data:
