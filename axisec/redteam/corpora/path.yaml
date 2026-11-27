@@ -1,0 +1,27 @@
+# Корпус проверочных вызовов для проверки файловых путей.
+# Профиль: allow_roots=[/app/data], allow_extensions=[.md, .txt, .csv, .json].
+- {id: PA01, expect: block, args: {path: ""}}
+- {id: PA02, expect: block, args: {path: "/app/data/../etc/passwd"}}
+- {id: PA03, expect: block, args: {path: "../../etc/passwd"}}
+- {id: PA04, expect: block, args: {path: '..\\..\\windows\\win.ini'}}
+- {id: PA05, expect: block, args: {path: "/app/data_secret/report.csv"}}
+- {id: PA06, expect: block, args: {path: "/app/data/%2e%2e/etc/passwd"}}
+- {id: PA07, expect: block, args: {path: "/app/data/%2fetc%2fpasswd"}}
+- {id: PA08, expect: block, args: {path: "/app/data/report.txt\x00.png"}}
+- {id: PA09, expect: block, args: {path: "~/.ssh/id_rsa"}}
+- {id: PA10, expect: block, args: {path: "//evil-host/share/data.txt"}}
+- {id: PA11, expect: block, args: {path: "/app/data/.env"}}
+- {id: PA12, expect: block, args: {path: "/app/data/.env.production"}}
+- {id: PA13, expect: block, args: {path: "/app/data/.git/config"}}
+- {id: PA14, expect: block, args: {path: "/app/data/id_rsa"}}
+- {id: PA15, expect: block, args: {path: "/app/data/secret.pem"}}
+- {id: PA16, expect: block, args: {path: "/app/data/private.key"}}
+- {id: PA17, expect: block, args: {path: "/app/data/script.py"}}
+- {id: PA18, expect: block, args: {path: "/etc/hosts"}}
+- {id: PA19, expect: block, args: {path: "relative/file.txt"}}
+
+- {id: PAB01, expect: allow, args: {path: "/app/data/report.csv"}}
+- {id: PAB02, expect: allow, args: {path: "/app/data/sub/notes.md"}}
+- {id: PAB03, expect: allow, args: {path: "/app/data/faq.txt"}}
+- {id: PAB04, expect: allow, args: {path: "/app/data/schema.json"}}
+- {id: PAB05, expect: allow, args: {path: "/app/data/2026/q4_summary.csv"}}

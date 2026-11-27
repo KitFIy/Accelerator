@@ -1,0 +1,10 @@
+[project]
+name = "axisec"
+version = "0.2.0"
+description = "Детерминированный шлюз контроля действий ИИ-агентов"
+readme = "README.md"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

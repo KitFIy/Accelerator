@@ -123,13 +123,13 @@ tools:
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q                                  # 170 тестов
+pytest -q                                  # 288 тестов (работает напрямую через pyproject.toml)
 python bench/latency.py                    # замеры задержки -> bench/results.json
 python bench/load.py                       # нагрузочный тест (50-200 клиентов) -> bench/load_results.json
 python -m axisec.redteam.live_eval --help  # прогон сценариев на GigaChat / YandexGPT / OpenAI
 ```
 
-Результаты — в `docs/02_mvp_results.md`.
+Для смены окружения скопируйте `.env.example` в `.env`. Результаты замеров — в `docs/02_mvp_results.md`.
 
 ## Состав репозитория
 
@@ -138,7 +138,7 @@ python -m axisec.redteam.live_eval --help  # прогон сценариев н�
 | `axisec/engine.py`, `axisec/guards/` | движок политик, RBAC, AST SQL, shell, path, аргументы, потоковый DLP |
 | `axisec/gateway/` | прокси модели и MCP (включая SSE и адаптеры GigaChat/Yandex), авторизация, API |
 | `axisec/approvals.py`, `axisec/policy_draft.py` | очередь подтверждений человеком и генератор черновика YAML из `tools/list` |
-| `axisec/redteam/` | сценарии атак, корпус вызовов, прогон и `live_eval` |
+| `axisec/redteam/` | сценарии атак, корпуса вызовов (`corpus.yaml`, `corpora/`), прогон и `live_eval` |
 | `axisec/demo/` | стенд: демо-мир, MCP-сервер, имитатор модели, агент |
 | `axisec/dashboard/` | веб-интерфейс (стенд, монитор, апрувы, проверка вызова, Red Team, политика) |
 | `policies/` | политики |

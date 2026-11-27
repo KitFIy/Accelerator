@@ -1,7 +1,7 @@
 services:
   axisec:
     build: .
-    image: axisec:0.1.0
+    image: axisec:0.2.0
     ports:
       - "8080:8080"
     volumes:
@@ -9,9 +9,13 @@ services:
       - ./policies:/app/policies:ro
     environment:
       AXISEC_POLICY: /app/policies/crm_agent.yaml
-      # Реальная модель вместо имитатора (любой OpenAI-совместимый API):
+      AXISEC_MODE: enforce
+      # Реальная модель вместо имитатора (OpenAI / GigaChat / YandexGPT):
+      # AXISEC_LLM_PROVIDER: auto
       # AXISEC_LLM_UPSTREAM: https://llm.example/v1
       # AXISEC_LLM_API_KEY: ${LLM_API_KEY}
+      # Защита дашборда и шлюза:
+      # AXISEC_ADMIN_TOKEN: ${AXISEC_ADMIN_TOKEN}
       # Реальные MCP-серверы:
       # AXISEC_MCP_UPSTREAMS: '{"crm": "http://crm-mcp:9000/mcp"}'
     restart: unless-stopped

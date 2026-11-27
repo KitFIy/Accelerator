@@ -75,7 +75,7 @@ def main() -> Path:
         "и OWASP Top 10 for Agentic Applications 2026."))
     add_labeled(about[10], "Состояние на 27.11.2026: ", (
         "версия 0.2 реализована: шлюз для OpenAI, GigaChat и YandexGPT и MCP (SSE), разбор SQL/shell/path, "
-        "RBAC, режим observe, апрувы человеком, авторизация, экспорт SIEM/метрики, Docker; 170 автотестов."),
+        "RBAC, режим observe, апрувы человеком, авторизация, экспорт SIEM/метрики, Docker; 288 автотестов."),
         about[12].runs[0], about[12].runs[1])
     set_tail(about[12], (
         "Действующий прототип шлюза версии 0.2. Измерено на демонстрационном стенде: без шлюза ущерб наносят "

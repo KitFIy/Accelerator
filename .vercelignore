@@ -17,5 +17,7 @@ AGENTS.md
 PROGRESS.md
 .venv/
 .pytest_cache/
+.env
+.env.*
 *.sqlite
 *.db

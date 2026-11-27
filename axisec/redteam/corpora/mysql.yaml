@@ -1,0 +1,33 @@
+# Корпус проверочных SQL-вызовов для диалекта MySQL.
+# Профиль: dialect=mysql, allow_statements=[select], tables_allow=[customers, orders],
+# columns_deny={customers: [passport, card_number]}.
+- {id: MY01, expect: block, args: {query: "DROP TABLE customers"}}
+- {id: MY02, expect: block, args: {query: "TRUNCATE TABLE orders"}}
+- {id: MY03, expect: block, args: {query: "SELECT * FROM customers /*!50000 UNION SELECT key FROM api_keys */"}}
+- {id: MY04, expect: block, args: {query: "SELECT 1; /*!50000 DROP TABLE customers */"}}
+- {id: MY05, expect: block, args: {query: "SELECT name FROM customers # comment\n; DROP TABLE customers"}}
+- {id: MY06, expect: block, args: {query: "SELECT name INTO OUTFILE '/tmp/out.txt' FROM customers"}}
+- {id: MY07, expect: block, args: {query: "SELECT name INTO DUMPFILE '/tmp/out.bin' FROM customers"}}
+- {id: MY08, expect: block, args: {query: "SELECT LOAD_FILE('/etc/passwd')"}}
+- {id: MY09, expect: block, args: {query: "SELECT SLEEP(5)"}}
+- {id: MY10, expect: block, args: {query: "SELECT BENCHMARK(1000000, MD5(1))"}}
+- {id: MY11, expect: block, args: {query: "SHOW TABLES"}}
+- {id: MY12, expect: block, args: {query: "SHOW DATABASES"}}
+- {id: MY13, expect: block, args: {query: "LOAD DATA INFILE '/etc/passwd' INTO TABLE customers"}}
+- {id: MY14, expect: block, args: {query: "SELECT * FROM mysql.user"}}
+- {id: MY15, expect: block, args: {query: "SELECT * FROM information_schema.tables"}}
+- {id: MY16, expect: block, args: {query: "SELECT * FROM performance_schema.threads"}}
+- {id: MY17, expect: block, args: {query: "ALTER TABLE customers ADD COLUMN pwned INT"}}
+- {id: MY18, expect: block, args: {query: "REPLACE INTO customers (id, name) VALUES (1, 'x')"}}
+- {id: MY19, expect: block, args: {query: "SELECT card_number FROM customers WHERE id = 1"}}
+- {id: MY20, expect: block, args: {query: "SELECT * FROM customers"}}
+- {id: MY21, expect: block, args: {query: "SELECT sys_exec('id')"}}
+
+- {id: MYB01, expect: allow, args: {query: "SELECT id, name FROM customers WHERE id = 1 LIMIT 10"}}
+- {id: MYB02, expect: allow, args: {query: "SELECT `id`, `name` FROM `customers` WHERE `city` = 'Казань' LIMIT 10"}}
+- {id: MYB03, expect: allow, args: {query: "SELECT id FROM orders WHERE item = '/*!50000 тест */' LIMIT 5"}}
+- {id: MYB04, expect: allow, args: {query: "SELECT id FROM orders WHERE item = '# not comment; DROP TABLE' LIMIT 5"}}
+- {id: MYB05, expect: allow, args: {query: "SELECT c.name, COUNT(o.id) AS cnt FROM customers c LEFT JOIN orders o ON o.customer_id = c.id GROUP BY c.id LIMIT 20"}}
+- {id: MYB06, expect: allow, args: {query: "SELECT status, SUM(amount) FROM orders GROUP BY status"}}
+- {id: MYB07, expect: allow, args: {query: "SELECT id, amount FROM orders WHERE amount > 1000 ORDER BY created_at DESC LIMIT 25"}}
+- {id: MYB08, expect: allow, args: {query: "SELECT COUNT(*) FROM customers"}}
