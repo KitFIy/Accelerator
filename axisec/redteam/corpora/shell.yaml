@@ -28,6 +28,7 @@
 - {id: SH25, expect: block, args: {cmd: "git --upload-pack=evil ls-remote origin"}}
 - {id: SH26, expect: block, args: {cmd: "ls\nid"}}
 - {id: SH27, expect: block, args: {cmd: "ls 'unclosed"}}
+- {id: SH28, expect: block, args: {cmd: "echo \"'\" $(id)"}}
 
 - {id: SHB01, expect: allow, args: {cmd: "ls -la"}}
 - {id: SHB02, expect: allow, args: {cmd: "git status"}}
@@ -37,3 +38,4 @@
 - {id: SHB06, expect: allow, args: {cmd: "cat README.md"}}
 - {id: SHB07, expect: allow, args: {cmd: "find . -name '*.py'"}}
 - {id: SHB08, expect: allow, args: {cmd: "tar -tf archive.tar"}}
+- {id: SHB09, expect: allow, args: {cmd: "grep \"'\" notes.txt"}}

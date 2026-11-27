@@ -22,6 +22,8 @@ class AuditLog:
         if db_path:
             Path(db_path).parent.mkdir(parents=True, exist_ok=True)
             self._db = sqlite3.connect(str(db_path), check_same_thread=False)
+            self._db.execute("PRAGMA journal_mode=WAL")
+            self._db.execute("PRAGMA busy_timeout=3000")
             self._db.execute("CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, ts REAL, data TEXT)")
             self._db.commit()
             rows = self._db.execute("SELECT id, data FROM events ORDER BY id DESC LIMIT ?", (keep,)).fetchall()
@@ -198,6 +200,12 @@ class AuditLog:
 
     def unsubscribe(self, q: asyncio.Queue) -> None:
         self._subscribers.discard(q)
+
+    def close(self) -> None:
+        with self._lock:
+            if self._db is not None:
+                self._db.close()
+                self._db = None
 
 
 def _cef_hdr(s: Any) -> str:

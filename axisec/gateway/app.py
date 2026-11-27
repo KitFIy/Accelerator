@@ -8,6 +8,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
 import httpx
 import yaml
@@ -20,6 +21,7 @@ from ..audit import AuditLog
 from ..demo import mcp_server, mock_llm
 from ..demo.world import World
 from ..engine import PolicyEngine
+from ..env import load_dotenv
 from ..policy import Policy, load_policy
 from ..policy_draft import generate_policy_draft
 from ..redteam import runner
@@ -31,6 +33,13 @@ ROOT = Path(__file__).resolve().parents[2]
 DASHBOARD = Path(__file__).resolve().parents[1] / "dashboard" / "index.html"
 
 
+async def _read_json(request: Request) -> tuple[Any, JSONResponse | None]:
+    try:
+        return await request.json(), None
+    except ValueError:
+        return None, JSONResponse({"error": "Тело запроса должно быть корректным JSON"}, status_code=400)
+
+
 def _http_verify() -> bool | str:
     ca_bundle = os.getenv("AXISEC_LLM_CA_BUNDLE", "").strip()
     if ca_bundle:
@@ -39,6 +48,7 @@ def _http_verify() -> bool | str:
 
 
 def create_app(policy_path: str | None = None, audit_db: str | None = None, mode_override: str | None = None) -> FastAPI:
+    load_dotenv()
     policy_file = Path(policy_path or os.getenv("AXISEC_POLICY") or ROOT / "policies" / "crm_agent.yaml")
     llm_provider = os.getenv("AXISEC_LLM_PROVIDER", "")
     llm_upstream = os.getenv("AXISEC_LLM_UPSTREAM", DEMO)
@@ -55,6 +65,7 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None, mode
             app.state.gateway.http = app.state.http
         yield
         await app.state.http.aclose()
+        app.state.audit.close()
 
     app = FastAPI(title="Axisec", version=__version__, docs_url="/api/docs", redoc_url=None, lifespan=lifespan)
     app.state.policy_file = policy_file
@@ -116,7 +127,11 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None, mode
         err, role, upstream_auth = _check_gateway(request)
         if err is not None:
             return err
-        body = await request.json()
+        body, jerr = await _read_json(request)
+        if jerr is not None:
+            return jerr
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "Ожидался JSON-объект"}, status_code=400)
         wait_ov = _wait_override(request)
         if body.get("stream"):
             status, res = await app.state.gateway.chat_stream(
@@ -135,7 +150,9 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None, mode
         err, role, _ = _check_gateway(request)
         if err is not None:
             return err
-        payload = await request.json()
+        payload, jerr = await _read_json(request)
+        if jerr is not None:
+            return jerr
         status, resp, extra = await app.state.gateway.mcp(
             server, payload, session_of(request), dict(request.headers), role=role, wait_override=_wait_override(request)
         )
@@ -278,8 +295,10 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None, mode
     async def set_policy_mode(request: Request):
         if (err := _require_admin(request)) is not None:
             return err
-        body = await request.json()
-        mode = str(body.get("mode", "")).strip().lower()
+        body, jerr = await _read_json(request)
+        if jerr is not None:
+            return jerr
+        mode = str((body or {}).get("mode", "")).strip().lower()
         if mode not in ("enforce", "observe"):
             return JSONResponse({"error": "mode должен быть enforce или observe"}, status_code=400)
         app.state.engine = PolicyEngine(app.state.engine.policy, observe_override=mode)
@@ -362,7 +381,10 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None, mode
     async def check(request: Request):
         if (err := _require_admin(request)) is not None:
             return err
-        body = await request.json()
+        body, jerr = await _read_json(request)
+        if jerr is not None:
+            return jerr
+        body = body if isinstance(body, dict) else {}
         role = str(body.get("role", "") or "").strip()
         d = app.state.engine.evaluate(str(body.get("tool", "")), body.get("args") or {}, role=role)
         app.state.audit.record(
@@ -382,7 +404,10 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None, mode
     async def demo_run(request: Request):
         if (err := _require_admin(request)) is not None:
             return err
-        body = await request.json()
+        body, jerr = await _read_json(request)
+        if jerr is not None:
+            return jerr
+        body = body if isinstance(body, dict) else {}
         sc = runner.scenario(str(body.get("id", "")))
         if sc is None and body.get("prompt"):
             sc = {"id": "custom", "kind": "attack", "title": "Свой запрос", "prompt": str(body["prompt"])}

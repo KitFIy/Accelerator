@@ -21,8 +21,9 @@ class ShellVerdict:
 
 
 def _scan_substitutions(cmd: str) -> tuple[bool, bool]:
-    """Проверяет наличие подстановки команд (`$(...)`, `` `...` ``) и переменных (`$VAR`) вне одиночных кавычек."""
+    """Проверяет наличие подстановки команд (`$(...)`, `` `...` ``) и переменных (`$VAR`) с учётом ' и \"."""
     in_single = False
+    in_double = False
     escaped = False
     has_subshell = False
     has_env = False
@@ -33,11 +34,11 @@ def _scan_substitutions(cmd: str) -> tuple[bool, bool]:
         if ch == "\\" and not in_single:
             escaped = True
             continue
-        if ch == "'" and not in_single:
-            in_single = True
+        if ch == '"' and not in_single:
+            in_double = not in_double
             continue
-        if ch == "'" and in_single:
-            in_single = False
+        if ch == "'" and not in_double:
+            in_single = not in_single
             continue
         if in_single:
             continue
@@ -49,7 +50,7 @@ def _scan_substitutions(cmd: str) -> tuple[bool, bool]:
                 has_subshell = True
             elif nxt.isalpha() or nxt in ("_", "{", "@", "*", "?", "#"):
                 has_env = True
-        elif ch in ("<", ">") and i + 1 < len(cmd) and cmd[i + 1] == "(":
+        elif not in_double and ch in ("<", ">") and i + 1 < len(cmd) and cmd[i + 1] == "(":
             has_subshell = True
     return has_subshell, has_env
 

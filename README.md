@@ -123,7 +123,7 @@ tools:
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q                                  # 288 тестов (работает напрямую через pyproject.toml)
+pytest -q                                  # 291 тест (работает напрямую через pyproject.toml)
 python bench/latency.py                    # замеры задержки -> bench/results.json
 python bench/load.py                       # нагрузочный тест (50-200 клиентов) -> bench/load_results.json
 python -m axisec.redteam.live_eval --help  # прогон сценариев на GigaChat / YandexGPT / OpenAI

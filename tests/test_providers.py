@@ -7,7 +7,6 @@ import httpx
 
 from axisec.gateway.app import create_app
 from axisec.gateway.providers import (
-    GigaChatOAuth,
     ProviderAdapter,
     detect_provider,
     openai_to_gigachat_request,

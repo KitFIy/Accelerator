@@ -29,6 +29,7 @@ from ..demo import mcp_server
 from ..demo.agent import run_agent
 from ..demo.world import World
 from ..engine import PolicyEngine
+from ..env import load_dotenv
 from ..gateway.app import create_app
 from ..gateway.providers import ProviderAdapter
 from ..gateway.proxy import Gateway
@@ -168,6 +169,7 @@ def format_markdown(report: dict) -> str:
 
 
 def main() -> None:
+    load_dotenv()
     parser = argparse.ArgumentParser(description="Прогон сценариев Red Team на реальной LLM через Axisec")
     parser.add_argument("--provider", default="", help="auto | openai | gigachat | yandex | demo")
     parser.add_argument("--upstream", default="", help="URL OpenAI-совместимого API или GigaChat/Yandex")

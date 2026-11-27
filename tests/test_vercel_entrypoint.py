@@ -1,7 +1,6 @@
 """Проверки ASGI-точки входа main.py и поведения в режиме Vercel."""
 
 import asyncio
-import json
 
 import httpx
 

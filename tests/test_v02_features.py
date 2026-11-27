@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import os
 
 import httpx
 import yaml
@@ -278,3 +279,27 @@ def test_policy_draft_reload_sqlite_persistence_and_siem_export(tmp_path):
     assert ev3["id"] == 3
     reopened.clear()
     assert AuditLog(db_file).events(10) == []
+
+
+def test_dotenv_loader_and_invalid_json_400(tmp_path, monkeypatch):
+    from axisec.env import load_dotenv
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("# comment\nAXISEC_TEST_FOO='bar_baz'\nAXISEC_TEST_EXISTING=from_file\n", encoding="utf-8")
+    monkeypatch.delenv("AXISEC_TEST_FOO", raising=False)
+    monkeypatch.setenv("AXISEC_TEST_EXISTING", "from_os")
+    load_dotenv(env_file)
+    assert os.environ["AXISEC_TEST_FOO"] == "bar_baz"
+    assert os.environ["AXISEC_TEST_EXISTING"] == "from_os"
+
+    app = create_app()
+
+    async def go():
+        async with _client(app) as c:
+            r1 = await c.post("/v1/chat/completions", content=b"{bad", headers={"content-type": "application/json"})
+            r2 = await c.post("/api/check", content=b"{bad", headers={"content-type": "application/json"})
+        await app.state.http.aclose()
+        return r1, r2
+
+    r1, r2 = asyncio.run(go())
+    assert r1.status_code == 400 and r2.status_code == 400

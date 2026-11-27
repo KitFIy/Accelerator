@@ -6,10 +6,10 @@ Axisec (v0.2.0) — детерминированный шлюз контроля
 
 ## Текущее состояние (2026-11-27)
 - **Ветка:** `feat/demo-day-and-v02` (от `ccr-bca1b7b0-rcgzee`, отправлена в `origin`). Основная ветка `ccr-bca1b7b0-rcgzee` (Vercel prod) не тронута.
-- **Автотесты и корпуса:** **288 тестов** проходят (`pytest -q`).
+- **Автотесты и корпуса:** **291 тест** проходит (`pytest -q`).
   - Сценарии стенда: 14 атак → 0 ущерба через шлюз, 8/8 рабочих задач выполнены.
   - Основной корпус CRM (SQLite): 94/94 атак заблокированы, 36/36 легитимных пропущены.
-  - Дополнительные корпуса (`axisec/redteam/corpora/`): PostgreSQL (25/25 и 8/8), MySQL (21/21 и 8/8), shell (27/27 и 8/8), path (19/19 и 5/5).
+  - Дополнительные корпуса (`axisec/redteam/corpora/`): PostgreSQL (25/25 и 8/8), MySQL (21/21 и 8/8), shell (28/28 и 9/9), path (19/19 и 5/5).
 - **Нагрузка (`bench/load.py`):** 50–200 параллельных клиентов, 1 процесс → 379–403 RPS, 0 ошибок.
 - **Онбординг коллаборатора:** добавлены `.env.example`, `pyproject.toml` (`pythonpath = ["."]`), обновлены `AGENTS.md`, `README.md`, `docker-compose.yml`.
 
@@ -32,4 +32,4 @@ Axisec (v0.2.0) — детерминированный шлюз контроля
 - 2026-11-17: подачи 0–7 (`docs/01_research_factcheck.md`, MVP 0.1.0, 147 тестов, презентации, паспорт, `main.py`).
 - 2026-11-27 (1): ветка `feat/demo-day-and-v02`, синхронизация ролей команды, `vercel.json`, адаптеры GigaChat/YandexGPT + `live_eval`, `bench/load.py` (379–403 RPS).
 - 2026-11-27 (2): v0.2.0 — авторизация, RBAC, `observe`, генератор политик, апрувы HITL, потоковый SSE/DLP, `shell`/`path`, блок `/*!...*/`, SQLite-аудит, JSONL/CEF, `/metrics`.
-- 2026-11-27 (3): YAML-корпуса `corpora/{postgres,mysql,shell,path}.yaml`, `.env.example`, `pyproject.toml`, финальный handoff в `AGENTS.md`/`PROGRESS.md`; 288/288 тестов.
+- 2026-11-27 (3): YAML-корпуса `corpora/{postgres,mysql,shell,path}.yaml`, `.env.example`, `pyproject.toml`, финальный handoff, фикс кавычек в `shell.py` и автозагрузка `.env`; 291/291 тестов.

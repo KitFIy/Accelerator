@@ -57,6 +57,7 @@ code,.mono{font-family:var(--mono);font-size:12.5px}
 .sc.on{background:#17264a;border-color:#2b4379}
 .sc small{display:block;color:var(--muted);font-size:12px}
 .sc .id{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-right:6px}
+.grp{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px 6px}
 .prompt{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;white-space:pre-wrap;font-family:var(--mono);font-size:13px;margin:10px 0 14px}
 .duo{grid-template-columns:1fr 1fr}
 .col h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
@@ -361,12 +362,22 @@ async function downloadExport(fmt) {
 $("expJsonl").onclick = () => downloadExport("jsonl");
 $("expCef").onclick = () => downloadExport("cef");
 
-let es = null, pending = null;
+let es = null, pending = null, badgeTimer = null;
 function connectStream() {
   if (es) es.close();
   const url = adminToken ? `/api/stream?token=${encodeURIComponent(adminToken)}` : "/api/stream";
   es = new EventSource(url);
-  es.onmessage = () => {
+  es.onmessage = (msg) => {
+    try {
+      const ev = JSON.parse(msg.data);
+      if (ev && ev.type === "approval" && !badgeTimer) {
+        badgeTimer = setTimeout(async () => {
+          badgeTimer = null;
+          const list = await api("/api/approvals?status=pending");
+          $("appBadge").innerHTML = list.length ? `<span class="badge b-pending">${list.length}</span>` : "";
+        }, 150);
+      }
+    } catch (e) {}
     if (!$("monitor").classList.contains("on") || pending) return;
     pending = setTimeout(() => { pending = null; refreshMonitor(); }, 250);
   };

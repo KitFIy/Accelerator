@@ -93,7 +93,7 @@ GigaChat (OAuth2 + `functions`/`function_call`) и YandexGPT (`Api-Key` / `x-fol
 движок политик с RBAC и режимом `observe`, парсеры SQL/shell/path, DLP, подтверждение
 человеком, генератор черновика политики, стенд с 14 атаками, дашборд с авторизацией,
 экспорт в JSONL/CEF и `/metrics`, нагрузочный тест (до 200 клиентов), корпуса для SQLite,
-PostgreSQL, MySQL, shell и path, Docker-образ, 288 автотестов. Планы: прогон на живых ключах
+PostgreSQL, MySQL, shell и path, Docker-образ, 291 автотест. Планы: прогон на живых ключах
 моделей, запуск на Astra Linux, реестр и сертификация.
 
 **16. Использовали ли вы ИИ при разработке?**
