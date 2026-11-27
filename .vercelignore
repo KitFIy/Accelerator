@@ -13,3 +13,9 @@ docker-compose.yml
 requirements-dev.txt
 PLAN.md
 CLAUDE.md
+AGENTS.md
+PROGRESS.md
+.venv/
+.pytest_cache/
+*.sqlite
+*.db

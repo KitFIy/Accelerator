@@ -347,10 +347,12 @@ def edit_team(deck: Deck, number: int, section: str):
     set_runs(lead, len(lead.text_frame.paragraphs) - 1,
              "Архитектура шлюза Axisec, модель политик доступа, пилотные интеграции с партнёрами.")
     dev = find(s, "Прямоугольник: скругленные углы 20")
+    set_runs(dev, 1, "Малюгин Егор")
     set_runs(dev, len(dev.text_frame.paragraphs) - 1,
              "Прокси модели и MCP (FastAPI, uvloop), разбор SQL по AST (sqlglot), "
              "модель политик (Pydantic v2), сборка в Docker.")
     sec = find(s, "Прямоугольник: скругленные углы 23")
+    set_runs(sec, 1, "Мотов Александр")
     set_runs(sec, len(sec.text_frame.paragraphs) - 1,
              "Сценарии атак по OWASP Top 10 для LLM и агентных систем, стенд Red Team, "
              "дашборд инцидентов, отчёты аудита.")
@@ -726,8 +728,8 @@ def build_short() -> Path:
     chip(s, x2 + 0.28, 1.68, "Команда", fill=TEAL)
     text(s, x2 + 0.3, 2.3, w2 - 0.6, 2.45, [
         [w("Андросик Стефан", 14), b(" — лидер, архитектура и политики", 13.5)],
-        [w("Мотов Александр", 14), b(" — ядро шлюза, разбор SQL", 13.5)],
-        [w("Малюгин Егор", 14), b(" — Red Team и дашборд", 13.5)],
+        [w("Малюгин Егор", 14), b(" — ядро шлюза, разбор SQL", 13.5)],
+        [w("Мотов Александр", 14), b(" — Red Team и дашборд", 13.5)],
         [run("Институт кибербезопасности и цифровых технологий РТУ МИРЭА", 11.5, MUTED)],
     ], after=8)
     card(s, x2, 5.0, w2, 1.7, fill="1C3A73", line=ACCENT, lw=2)

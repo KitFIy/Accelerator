@@ -33,6 +33,9 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None) -> F
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        if app.state.http.is_closed:
+            app.state.http = httpx.AsyncClient(timeout=60)
+            app.state.gateway.http = app.state.http
         yield
         await app.state.http.aclose()
 
@@ -112,7 +115,9 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None) -> F
 
         # На бессерверных платформах долгие соединения держать нельзя: поток закрывается,
         # а браузер (EventSource) сам подключается заново.
-        deadline = time.monotonic() + 25 if os.getenv("VERCEL") else None
+        max_secs_raw = os.getenv("AXISEC_STREAM_MAX_SECONDS")
+        max_secs = float(max_secs_raw) if max_secs_raw else (25.0 if os.getenv("VERCEL") else 0.0)
+        deadline = (time.monotonic() + max_secs) if max_secs > 0 else None
 
         async def gen():
             try:
