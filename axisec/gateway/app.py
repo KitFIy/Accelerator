@@ -20,21 +20,32 @@ from ..demo.world import World
 from ..engine import PolicyEngine
 from ..policy import load_policy
 from ..redteam import runner
+from .providers import ProviderAdapter
 from .proxy import DEMO, Gateway
 
 ROOT = Path(__file__).resolve().parents[2]
 DASHBOARD = Path(__file__).resolve().parents[1] / "dashboard" / "index.html"
 
 
+def _http_verify() -> bool | str:
+    ca_bundle = os.getenv("AXISEC_LLM_CA_BUNDLE", "").strip()
+    if ca_bundle:
+        return ca_bundle
+    return os.getenv("AXISEC_LLM_VERIFY_TLS", "true").strip().lower() not in ("0", "false", "no")
+
+
 def create_app(policy_path: str | None = None, audit_db: str | None = None) -> FastAPI:
     policy_file = Path(policy_path or os.getenv("AXISEC_POLICY") or ROOT / "policies" / "crm_agent.yaml")
+    llm_provider = os.getenv("AXISEC_LLM_PROVIDER", "")
     llm_upstream = os.getenv("AXISEC_LLM_UPSTREAM", DEMO)
     mcp_upstreams = json.loads(os.getenv("AXISEC_MCP_UPSTREAMS", "") or '{"crm": "demo"}')
+    provider = ProviderAdapter(llm_upstream, provider=llm_provider, api_key=os.getenv("AXISEC_LLM_API_KEY", ""))
+    verify_tls = _http_verify()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         if app.state.http.is_closed:
-            app.state.http = httpx.AsyncClient(timeout=60)
+            app.state.http = httpx.AsyncClient(timeout=60, verify=verify_tls)
             app.state.gateway.http = app.state.http
         yield
         await app.state.http.aclose()
@@ -44,10 +55,11 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None) -> F
     app.state.engine = PolicyEngine(load_policy(policy_file))
     app.state.audit = AuditLog(audit_db or os.getenv("AXISEC_AUDIT_DB") or None)
     app.state.world = World()
-    app.state.http = httpx.AsyncClient(timeout=60)
+    app.state.http = httpx.AsyncClient(timeout=60, verify=verify_tls)
     app.state.gateway = Gateway(app.state.engine, app.state.audit, app.state.world, app.state.http,
-                                llm_upstream=llm_upstream, llm_api_key=os.getenv("AXISEC_LLM_API_KEY", ""),
-                                mcp_upstreams=mcp_upstreams)
+                                llm_upstream=provider.upstream, llm_api_key=os.getenv("AXISEC_LLM_API_KEY", ""),
+                                mcp_upstreams=mcp_upstreams, llm_provider=provider.provider,
+                                provider_adapter=provider)
 
     def session_of(request: Request) -> str:
         return request.headers.get("x-axisec-session", "")
@@ -93,8 +105,10 @@ def create_app(policy_path: str | None = None, audit_db: str | None = None) -> F
     @app.get("/api/health")
     async def health():
         p = app.state.engine.policy
+        gw = app.state.gateway
         return {"status": "ok", "version": __version__, "policy": p.name, "tools": len(p.tools),
-                "llm_upstream": llm_upstream, "mcp_servers": sorted(mcp_upstreams)}
+                "llm_upstream": gw.provider.upstream, "llm_provider": gw.provider.provider,
+                "mcp_servers": sorted(mcp_upstreams)}
 
     @app.get("/api/events")
     async def events(limit: int = 200):

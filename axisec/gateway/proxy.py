@@ -16,6 +16,7 @@ from ..audit import AuditLog
 from ..demo import mcp_server, mock_llm
 from ..demo.world import World
 from ..engine import Decision, PolicyEngine
+from .providers import ProviderAdapter, ProviderError, gigachat_to_openai_response
 
 DEMO = "demo"
 _PASS_HEADERS = ("authorization", "mcp-session-id", "mcp-protocol-version", "accept")
@@ -27,10 +28,12 @@ def _notice(d: Decision) -> str:
 
 class Gateway:
     def __init__(self, engine: PolicyEngine, audit: AuditLog, world: World, http: httpx.AsyncClient,
-                 llm_upstream: str = DEMO, llm_api_key: str = "", mcp_upstreams: dict[str, str] | None = None):
+                 llm_upstream: str = DEMO, llm_api_key: str = "", mcp_upstreams: dict[str, str] | None = None,
+                 llm_provider: str = "", provider_adapter: ProviderAdapter | None = None):
         self.engine, self.audit, self.world, self.http = engine, audit, world, http
         self.llm_upstream, self.llm_api_key = llm_upstream, llm_api_key
         self.mcp_upstreams = mcp_upstreams or {"crm": DEMO}
+        self.provider = provider_adapter or ProviderAdapter(llm_upstream, provider=llm_provider, api_key=llm_api_key)
 
     def _log(self, channel: str, d: Decision, args: Any, session: str) -> None:
         self.audit.record(channel=channel, tool=d.tool, args=args, action=d.action, rule=d.rule,
@@ -42,19 +45,21 @@ class Gateway:
         body.pop("stream", None)
         if self.engine.policy.dlp.requests == "mask":
             body["messages"] = [self._mask_message(m, session) for m in body.get("messages", [])]
-        if self.llm_upstream == DEMO:
+        normalize_fc = False
+        if self.provider.provider == DEMO:
             status, resp = 200, mock_llm.complete(body)
         else:
-            auth = f"Bearer {self.llm_api_key}" if self.llm_api_key else authorization
-            r = await self.http.post(self.llm_upstream.rstrip("/") + "/chat/completions", json=body,
-                                     headers={"authorization": auth} if auth else {})
             try:
-                status, resp = r.status_code, r.json()
-            except ValueError:
-                return 502, {"error": {"message": "Вышестоящая модель вернула не JSON", "type": "axisec_upstream"}}
+                status, resp, normalize_fc = await self.provider.send_chat(body, authorization, self.http)
+            except ProviderError as err:
+                return err.status_code, {"error": {"message": str(err), "type": "axisec_provider"}}
+            except httpx.HTTPError as err:
+                return 502, {"error": {"message": f"Ошибка сети при обращении к модели: {err}", "type": "axisec_upstream"}}
             if status >= 400:
                 return status, resp
         decisions = self._inspect_completion(resp, session)
+        if normalize_fc:
+            gigachat_to_openai_response(resp)
         resp["axisec"] = {"decisions": decisions}
         return status, resp
 

@@ -207,7 +207,8 @@ def check_sql(sql: str, rules: SqlRules) -> SqlVerdict:
                                       kinds, tables)
                 stmt = stmt.limit(rules.max_rows)
                 rewritten = True
-        new_sql_parts.append(stmt.sql(dialect=rules.dialect))
+        if rewritten:
+            new_sql_parts.append(stmt.sql(dialect=rules.dialect))
 
     return SqlVerdict(True, "sql.limit" if rewritten else "", "", kinds, tables,
                       "; ".join(new_sql_parts) if rewritten else None)

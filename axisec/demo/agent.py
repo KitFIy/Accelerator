@@ -20,7 +20,7 @@ async def _rpc(client: httpx.AsyncClient, url: str, method: str, params: dict | 
 
 
 async def run_agent(client: httpx.AsyncClient, llm_url: str, mcp_url: str, prompt: str,
-                    session: str = "", max_steps: int = 8) -> dict:
+                    session: str = "", max_steps: int = 8, model: str = "mock-obedient-1") -> dict:
     """Возвращает шаги агента и весь текст, который он получил от инструментов и модели."""
     headers = {"x-axisec-session": session} if session else {}
     listed = await _rpc(client, mcp_url, "tools/list", None, 1, headers)
@@ -32,7 +32,7 @@ async def run_agent(client: httpx.AsyncClient, llm_url: str, mcp_url: str, promp
     saw: list[str] = []
     for i in range(max_steps):
         r = await client.post(f"{llm_url}/chat/completions", headers=headers,
-                              json={"model": "mock-obedient-1", "messages": messages, "tools": tools})
+                              json={"model": model, "messages": messages, "tools": tools})
         r.raise_for_status()
         msg = r.json()["choices"][0]["message"]
         messages.append(msg)
@@ -44,7 +44,14 @@ async def run_agent(client: httpx.AsyncClient, llm_url: str, mcp_url: str, promp
             break
         for call in calls:
             name = call["function"]["name"]
-            args = json.loads(call["function"]["arguments"] or "{}")
+            raw_args = call["function"].get("arguments")
+            if isinstance(raw_args, dict):
+                args = raw_args
+            else:
+                try:
+                    args = json.loads(raw_args or "{}")
+                except ValueError:
+                    args = {}
             payload = {"jsonrpc": "2.0", "id": 100 + i, "method": "tools/call",
                        "params": {"name": name, "arguments": args}}
             resp = (await client.post(mcp_url, json=payload, headers=headers)).json()
@@ -54,5 +61,5 @@ async def run_agent(client: httpx.AsyncClient, llm_url: str, mcp_url: str, promp
             saw.append(text)
             steps.append({"type": "tool", "tool": name, "args": args, "result": text[:700],
                           "error": bool(result.get("isError"))})
-            messages.append({"role": "tool", "tool_call_id": call["id"], "content": text})
+            messages.append({"role": "tool", "tool_call_id": call.get("id", f"call_{i}"), "name": name, "content": text})
     return {"steps": steps, "saw": "\n".join(saw)}

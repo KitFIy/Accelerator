@@ -1,0 +1,78 @@
+{
+  "python": "3.12.15",
+  "os": "Windows-11-10.0.26200-SP0",
+  "machine": "AMD64",
+  "cpu_count": 18,
+  "workers": 1,
+  "levels": [
+    {
+      "concurrency": 50,
+      "requests": 1000,
+      "direct": {
+        "ok": 1000,
+        "errors": 0,
+        "rps": 831.1,
+        "p50_ms": 32.157,
+        "p95_ms": 76.396,
+        "p99_ms": 101.472,
+        "max_ms": 173.685
+      },
+      "through_gateway": {
+        "ok": 1000,
+        "errors": 0,
+        "rps": 402.9,
+        "p50_ms": 112.891,
+        "p95_ms": 180.078,
+        "p99_ms": 232.149,
+        "max_ms": 256.179
+      },
+      "overhead_p50_ms": 80.734
+    },
+    {
+      "concurrency": 100,
+      "requests": 1000,
+      "direct": {
+        "ok": 1000,
+        "errors": 0,
+        "rps": 797.9,
+        "p50_ms": 43.463,
+        "p95_ms": 114.129,
+        "p99_ms": 148.833,
+        "max_ms": 213.749
+      },
+      "through_gateway": {
+        "ok": 1000,
+        "errors": 0,
+        "rps": 400.3,
+        "p50_ms": 214.889,
+        "p95_ms": 360.058,
+        "p99_ms": 477.609,
+        "max_ms": 515.45
+      },
+      "overhead_p50_ms": 171.426
+    },
+    {
+      "concurrency": 200,
+      "requests": 2000,
+      "direct": {
+        "ok": 2000,
+        "errors": 0,
+        "rps": 752.8,
+        "p50_ms": 54.329,
+        "p95_ms": 140.496,
+        "p99_ms": 267.623,
+        "max_ms": 413.381
+      },
+      "through_gateway": {
+        "ok": 2000,
+        "errors": 0,
+        "rps": 379.0,
+        "p50_ms": 503.285,
+        "p95_ms": 608.41,
+        "p99_ms": 657.319,
+        "max_ms": 767.722
+      },
+      "overhead_p50_ms": 448.956
+    }
+  ]
+}

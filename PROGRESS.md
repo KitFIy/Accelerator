@@ -17,11 +17,12 @@
 - **2026-11-27:** Внедрён формат документации `AGENTS.md` + `PROGRESS.md` + `@`-ссылки в `CLAUDE.md`.
 
 ## Следующие шаги
-1. Реализовать адаптеры GigaChat (OAuth2 + `functions`/`function_call`) и YandexGPT (OpenAI-совместимый API + `Api-Key`/`x-folder-id`), CLI-раннер оценки сценариев и тесты с моками.
-2. Добавить и прогнать нагрузочный бенчмарк (50–200 одновременных клиентов), зафиксировать цифры в `bench/` и `docs/02_mvp_results.md`.
-3. Перейти к развитию v0.2: авторизация, режим наблюдения и генератор политик, human-in-the-loop, потоковый SSE, RBAC, парсеры shell/path + Postgres/MySQL, персистентный SQLite-аудит и экспорт/метрики.
+1. Развитие v0.2: авторизация шлюза и дашборда, режим наблюдения (`observe`) + автогенерация черновика политики из `tools/list`.
+2. Развитие v0.2: подтверждение человеком (`approve` + очередь в дашборде), настоящий SSE-стриминг для LLM и MCP, RBAC/профили ролей.
+3. Развитие v0.2: новые гарды (`shell`, `path`) и расширение Postgres/MySQL, персистентный SQLite-аудит, SIEM/метрики, обновление тестов и документов.
 
 ## Журнал
 - 2026-11-17: выполнены подачи 0–7 из `PLAN.md` (исследование/фактчек 25 утверждений, ядро MVP 0.1.0, шлюз LLM+MCP, стенд 14 атак + 8 задач, дашборд, замеры задержки, Docker, `Axisec_full.pptx`, `Axisec_pitch_5min.pptx`, `Axisec_passport.docx`, `main.py` для Vercel).
 - 2026-11-27: клонирован репо, создана ветка `feat/demo-day-and-v02`, развёрнуто `.venv`, добавлены `AGENTS.md`/`PROGRESS.md`/`CLAUDE.md`.
 - 2026-11-27: синхронизированы роли команды в `deck/build_decks.py`, `deliverables/speech_5min.md` и пересобраны PPTX/PDF; обновлена конфигурация Vercel (`vercel.json`, `.vercelignore`, lifecycle HTTP-клиента), 149/149 тестов проходят.
+- 2026-11-27: добавлены адаптеры GigaChat/YandexGPT (`axisec/gateway/providers.py`), CLI-раннер `axisec/redteam/live_eval.py`, оптимизация `sql.py` и нагрузочный тест `bench/load.py` (50–200 клиентов: 379–403 RPS, 0 ошибок -> `bench/load_results.json`, `docs/02_mvp_results.md`).
