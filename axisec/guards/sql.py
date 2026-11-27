@@ -89,6 +89,14 @@ def _is_tautology(e: exp.Expression | None) -> bool:
 def check_sql(sql: str, rules: SqlRules) -> SqlVerdict:
     if not isinstance(sql, str) or not sql.strip():
         return SqlVerdict(False, "sql.empty", "Пустой SQL-запрос")
+    if "/*!" in sql:
+        try:
+            for tok in sqlglot.tokenize(sql, read=rules.dialect):
+                if any(c.lstrip().startswith("!") for c in (tok.comments or ())):
+                    return SqlVerdict(False, "sql.conditional_comment",
+                                      "Исполняемые условные комментарии /*! ... */ запрещены")
+        except Exception as err:  # noqa: BLE001
+            return SqlVerdict(False, "sql.parse", f"SQL не разобран парсером, отклонён: {str(err)[:120]}")
     try:
         statements = [s for s in sqlglot.parse(sql, read=rules.dialect) if s is not None]
     except Exception as err:  # noqa: BLE001 — любой сбой разбора = отказ
@@ -100,10 +108,12 @@ def check_sql(sql: str, rules: SqlRules) -> SqlVerdict:
                           f"Несколько команд в одном запросе ({len(statements)}), разрешено {rules.max_statements}")
 
     allow = set(rules.allow_statements)
+    approve = set(rules.approve_statements)
     kinds: list[str] = []
     tables: list[str] = []
     new_sql_parts: list[str] = []
     rewritten = False
+    approval_reason = ""
 
     for stmt in statements:
         while isinstance(stmt, (exp.Subquery, exp.Paren)) and stmt.this is not None:
@@ -113,6 +123,9 @@ def check_sql(sql: str, rules: SqlRules) -> SqlVerdict:
         kinds.extend(sorted(found))
         for k in sorted(found):
             if k not in allow:
+                if k in approve:
+                    approval_reason = approval_reason or f"Операция требует подтверждения: {_RU.get(k, k)}"
+                    continue
                 return SqlVerdict(False, "sql.statement",
                                   f"Операция запрещена политикой: {_RU.get(k, k)}", kinds, tables)
 
@@ -210,5 +223,8 @@ def check_sql(sql: str, rules: SqlRules) -> SqlVerdict:
         if rewritten:
             new_sql_parts.append(stmt.sql(dialect=rules.dialect))
 
+    if approval_reason:
+        return SqlVerdict(True, "sql.approve", approval_reason, kinds, tables,
+                          "; ".join(new_sql_parts) if rewritten else None)
     return SqlVerdict(True, "sql.limit" if rewritten else "", "", kinds, tables,
                       "; ".join(new_sql_parts) if rewritten else None)

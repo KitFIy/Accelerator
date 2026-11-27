@@ -7,7 +7,7 @@
 данные. Запрещённое действие не исполнится, как бы ни был сформулирован
 промпт, который к нему привёл.
 
-Проект Акселератора РТУ МИРЭА, технологический трек. Версия MVP 0.1.0.
+Проект Акселератора РТУ МИРЭА, технологический трек. Версия 0.2.0.
 
 ## Запуск
 
@@ -15,6 +15,8 @@
 pip install -r requirements.txt
 python -m axisec            # http://127.0.0.1:8080
 ```
+
+Дополнительные флаги запуска: `--mode observe` (режим наблюдения без блокировок), `--workers 4`, `--policy <файл.yaml>`.
 
 или в контейнере:
 
@@ -72,10 +74,18 @@ docker compose up --build   # http://127.0.0.1:8080
 | Переменная | Значение |
 |---|---|
 | `AXISEC_POLICY` | путь к файлу политики |
-| `AXISEC_LLM_UPSTREAM` | адрес OpenAI-совместимого API, например `https://llm.example/v1` |
-| `AXISEC_LLM_API_KEY` | ключ к модели (иначе пробрасывается заголовок клиента) |
+| `AXISEC_MODE` | `enforce` (по умолчанию) или `observe` (только аудит без блокировок) |
+| `AXISEC_LLM_PROVIDER` | `auto`, `openai`, `gigachat`, `yandex` или `demo` |
+| `AXISEC_LLM_UPSTREAM` | адрес API модели (`https://api.giga.chat/v1`, `https://llm.api.cloud.yandex.net/v1` и т.д.) |
+| `AXISEC_LLM_API_KEY` | ключ или токен модели (иначе пробрасывается заголовок клиента) |
+| `AXISEC_GIGACHAT_AUTH_KEY` | ключ авторизации OAuth2 (Base64) для GigaChat |
+| `AXISEC_GIGACHAT_SCOPE` | scope GigaChat (`GIGACHAT_API_PERS`, `GIGACHAT_API_B2B`, `GIGACHAT_API_CORP`) |
+| `AXISEC_YANDEX_FOLDER_ID` | идентификатор каталога Yandex Cloud (`x-folder-id`) |
 | `AXISEC_MCP_UPSTREAMS` | JSON вида `{"crm": "http://crm-mcp:9000/mcp"}` |
-| `AXISEC_AUDIT_DB` | файл SQLite для журнала аудита |
+| `AXISEC_AUDIT_DB` | файл SQLite для персистентного журнала аудита |
+| `AXISEC_ADMIN_TOKEN` | токен защиты дашборда и административного API (`/api/*`, `/metrics`) |
+| `AXISEC_GATEWAY_TOKENS` | токены доступа агентов к шлюзу и привязка ролей (`{"tok": "junior"}`) |
+| `AXISEC_APPROVAL_WAIT_SECONDS` | время ожидания решения оператора по действиям с `approve` (по умолчанию 30 с) |
 
 ## Политика
 
@@ -113,8 +123,10 @@ tools:
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q                 # 147 тестов
-python bench/latency.py   # замеры задержки, результат в bench/results.json
+pytest -q                                  # 170 тестов
+python bench/latency.py                    # замеры задержки -> bench/results.json
+python bench/load.py                       # нагрузочный тест (50-200 клиентов) -> bench/load_results.json
+python -m axisec.redteam.live_eval --help  # прогон сценариев на GigaChat / YandexGPT / OpenAI
 ```
 
 Результаты — в `docs/02_mvp_results.md`.
@@ -123,28 +135,27 @@ python bench/latency.py   # замеры задержки, результат в
 
 | Путь | Что там |
 |---|---|
-| `axisec/engine.py`, `axisec/guards/` | движок политик: SQL, аргументы, DLP |
-| `axisec/gateway/` | прокси модели и MCP, API, приложение |
-| `axisec/redteam/` | сценарии атак, корпус вызовов, прогон |
+| `axisec/engine.py`, `axisec/guards/` | движок политик, RBAC, AST SQL, shell, path, аргументы, потоковый DLP |
+| `axisec/gateway/` | прокси модели и MCP (включая SSE и адаптеры GigaChat/Yandex), авторизация, API |
+| `axisec/approvals.py`, `axisec/policy_draft.py` | очередь подтверждений человеком и генератор черновика YAML из `tools/list` |
+| `axisec/redteam/` | сценарии атак, корпус вызовов, прогон и `live_eval` |
 | `axisec/demo/` | стенд: демо-мир, MCP-сервер, имитатор модели, агент |
-| `axisec/dashboard/` | веб-интерфейс |
+| `axisec/dashboard/` | веб-интерфейс (стенд, монитор, апрувы, проверка вызова, Red Team, политика) |
 | `policies/` | политики |
-| `tests/`, `bench/` | тесты и замеры |
+| `tests/`, `bench/` | тесты и замеры (последовательный и нагрузочный) |
 | `docs/` | исследование, результаты MVP |
 | `deliverables/` | презентации, паспорт проекта, текст выступления |
 | `deck/` | скрипты сборки презентаций и паспорта |
 | `source/` | исходные материалы команды |
-| `PLAN.md` | план работ и журнал |
+| `AGENTS.md`, `PROGRESS.md` | правила проекта и журнал прогресса |
 
-## Ограничения MVP
+## Ограничения
 
-- Модель на стенде — имитатор, который выполняет любую найденную инструкцию.
-  Это худший случай для защиты, но не замена проверке на реальных моделях.
+- Модель на встроенном стенде — имитатор, который выполняет любую найденную инструкцию.
+  Адаптеры для GigaChat и YandexGPT реализованы и проверены на моках; прогон на живых API-ключах выполняется отдельно через `live_eval`.
 - Детерминизм гарантирует исполнение политики, а не её полноту. Действие,
   разрешённое политикой, пройдёт (например, UPDATE с осмысленным, но слишком
   широким условием).
-- Потоковые ответы модели отдаются одним фрагментом после проверки.
-- В MCP поддержан обмен запрос-ответ; серверные потоки (GET, уведомления) не
-  проксируются.
-- Диалекты SQL проверены на SQLite и частично PostgreSQL.
-- Нет ролей пользователей, подтверждения человеком и интеграции с SIEM.
+- Перевод формата GigaChat (`functions` / `function_call`) работает в режиме запрос-ответ; посимвольный потоковый прокси и серверные потоки MCP (`GET /mcp/<сервер>`) поддержаны для OpenAI-совместимых моделей и внешних MCP-серверов.
+- Диалекты SQL проверены на SQLite, PostgreSQL и MySQL (включая блокировку условных комментариев `/*!...*/`).
+- Запуск на Astra Linux и регистрация в реестре ПО запланированы на следующий этап.

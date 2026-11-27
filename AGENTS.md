@@ -6,8 +6,9 @@ Axisec — детерминированный шлюз (Policy Enforcement Point
 
 - Язык и runtime: Python 3.12+ (локальное окружение `.venv`), FastAPI, Uvicorn, httpx, Pydantic v2, PyYAML, sqlglot.
 - Основные модули:
-  - `axisec/policy.py`, `axisec/engine.py`, `axisec/guards/` — модель политики, движок решений, AST-валидатор SQL, проверка аргументов, DLP.
-  - `axisec/gateway/` — HTTP-приложение (`app.py`), две точки контроля (`proxy.py`), адаптеры провайдеров.
+  - `axisec/policy.py`, `axisec/engine.py`, `axisec/guards/` — модель политики, RBAC, движок решений, AST-валидатор SQL (SQLite/PostgreSQL/MySQL), парсеры `shell` и `path`, проверка аргументов, потоковый DLP (`StreamMasker`).
+  - `axisec/gateway/` — HTTP-приложение (`app.py`), две точки контроля (`proxy.py`, включая SSE-стриминг), адаптеры OpenAI/GigaChat/Yandex (`providers.py`), авторизация (`auth.py`).
+  - `axisec/approvals.py`, `axisec/policy_draft.py`, `axisec/audit.py` — очередь human-in-the-loop, генератор черновика YAML из `tools/list`, персистентный SQLite-аудит, JSONL/CEF и `/metrics`.
   - `axisec/redteam/` — сценарии атак и рабочих задач (`scenarios.yaml`), корпус прямых вызовов (`corpus.yaml`), раннер (`runner.py`).
   - `axisec/demo/` — демо-мир «Ромашка» (`world.py`), имитатор модели (`mock_llm.py`), MCP-сервер (`mcp_server.py`), цикл агента (`agent.py`).
   - `axisec/dashboard/index.html` — встроенный веб-дашборд.
@@ -18,9 +19,11 @@ Axisec — детерминированный шлюз (Policy Enforcement Point
 
 ```powershell
 # Активация / запуск из .venv
-.venv\Scripts\python.exe -m axisec                  # http://127.0.0.1:8080
-.venv\Scripts\python.exe -m pytest -q               # автотесты
+.venv\Scripts\python.exe -m axisec                  # http://127.0.0.1:8080 (--mode observe --workers 4)
+.venv\Scripts\python.exe -m pytest -q               # 170 автотестов
 .venv\Scripts\python.exe bench/latency.py           # замеры задержки -> bench/results.json
+.venv\Scripts\python.exe bench/load.py              # нагрузочный тест (50-200 клиентов) -> bench/load_results.json
+.venv\Scripts\python.exe -m axisec.redteam.live_eval --help  # оценка сценариев на реальных LLM
 .venv\Scripts\python.exe deck/build_decks.py        # пересборка презентаций
 .venv\Scripts\python.exe deck/build_passport.py     # пересборка паспорта
 ```

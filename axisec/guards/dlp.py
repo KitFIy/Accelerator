@@ -103,3 +103,36 @@ def mask(text: str, detectors: list[str] | None = None) -> tuple[str, list[Findi
         pos = f.end
     out.append(text[pos:])
     return "".join(out), findings
+
+
+class StreamMasker:
+    """Потоковый DLP-фильтр со скользящим буфером для защиты секретов на границе чанков SSE."""
+
+    def __init__(self, detectors: list[str] | None = None, tail_keep: int = 128):
+        self.detectors = detectors
+        self.tail_keep = tail_keep
+        self._buf = ""
+        self.detected: set[str] = set()
+
+    def feed(self, chunk: str) -> str:
+        if not chunk:
+            return ""
+        self._buf += chunk
+        if len(self._buf) <= self.tail_keep:
+            return ""
+        masked, findings = mask(self._buf, self.detectors)
+        self.detected.update(f.type for f in findings)
+        cut = len(masked) - self.tail_keep
+        # Не режем прямо внутри [LABEL_СКРЫТ] и по возможности режем на пробеле/переносе строки
+        if "[" in masked[max(0, cut - 30):cut] and "]" in masked[cut:min(len(masked), cut + 30)]:
+            cut = masked.index("]", cut) + 1
+        out, self._buf = masked[:cut], masked[cut:]
+        return out
+
+    def flush(self) -> str:
+        if not self._buf:
+            return ""
+        masked, findings = mask(self._buf, self.detectors)
+        self.detected.update(f.type for f in findings)
+        self._buf = ""
+        return masked

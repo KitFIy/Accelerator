@@ -13,20 +13,21 @@
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 button,select,textarea,input{font:inherit;color:inherit}
-header{display:flex;align-items:center;gap:20px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--panel2);position:sticky;top:0;z-index:5}
+header{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--panel2);position:sticky;top:0;z-index:5;flex-wrap:wrap}
 .logo{font-weight:800;font-size:21px;letter-spacing:.04em}
 .logo span{color:var(--accent)}
 .sub{color:var(--muted);font-size:13px}
 .pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:13px;color:var(--muted)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(61,220,151,.18)}
-nav{display:flex;gap:4px;margin-left:auto}
+.dot.obs{background:var(--amber);box-shadow:0 0 0 3px rgba(248,197,85,.18)}
+nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
 nav button{background:none;border:0;padding:8px 14px;border-radius:8px;color:var(--muted);cursor:pointer;font-weight:600}
 nav button:hover{color:var(--text)}
 nav button.on{background:#17264a;color:var(--text)}
 main{padding:22px 24px 60px;max-width:1500px;margin:0 auto}
 section{display:none}section.on{display:block}
 h2{font-size:17px;margin:0 0 4px}
-.hint{color:var(--muted);font-size:13.5px;margin:0 0 16px;max-width:900px}
+.hint{color:var(--muted);font-size:13.5px;margin:0 0 16px;max-width:920px}
 .grid{display:grid;gap:14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
 .kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:16px}
@@ -37,16 +38,18 @@ h2{font-size:17px;margin:0 0 4px}
 .btn:disabled{opacity:.5;cursor:wait}
 .btn.ghost{background:none;border:1px solid var(--line);color:var(--text);font-weight:600}
 .btn.ghost:hover{border-color:var(--accent)}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn.danger{background:rgba(255,123,123,.18);color:var(--red);border:1px solid rgba(255,123,123,.35)}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 th{text-align:left;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:8px 10px;border-bottom:1px solid #16223c;vertical-align:top}
 .scroll{overflow-x:auto}
 code,.mono{font-family:var(--mono);font-size:12.5px}
 .badge{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;white-space:nowrap}
-.b-block{background:rgba(255,123,123,.14);color:var(--red)}
-.b-allow{background:rgba(61,220,151,.13);color:var(--green)}
-.b-modify{background:rgba(248,197,85,.14);color:var(--amber)}
-.b-mask,.b-hide{background:rgba(183,156,255,.15);color:var(--violet)}
+.b-block,.b-rejected,.b-expired{background:rgba(255,123,123,.14);color:var(--red)}
+.b-allow,.b-approved{background:rgba(61,220,151,.13);color:var(--green)}
+.b-modify,.b-would_block,.b-would_modify,.b-would_approve,.b-approve,.b-pending{background:rgba(248,197,85,.14);color:var(--amber)}
+.b-mask,.b-hide,.b-would_mask,.b-would_hide{background:rgba(183,156,255,.15);color:var(--violet)}
 .tag{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:0 6px;margin:1px 3px 1px 0;font-size:11.5px;color:var(--muted);white-space:nowrap}
 .stand{grid-template-columns:330px 1fr;align-items:start}
 .sc{display:block;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:9px;padding:8px 10px;cursor:pointer}
@@ -54,7 +57,6 @@ code,.mono{font-family:var(--mono);font-size:12.5px}
 .sc.on{background:#17264a;border-color:#2b4379}
 .sc small{display:block;color:var(--muted);font-size:12px}
 .sc .id{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-right:6px}
-.grp{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px 6px}
 .prompt{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;white-space:pre-wrap;font-family:var(--mono);font-size:13px;margin:10px 0 14px}
 .duo{grid-template-columns:1fr 1fr}
 .col h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
@@ -71,10 +73,12 @@ code,.mono{font-family:var(--mono);font-size:12.5px}
 .dec{font-size:13px;margin-top:10px;color:var(--muted)}
 .dec div{margin:4px 0}
 textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px;font-family:var(--mono);font-size:13px;min-height:90px;resize:vertical}
-select{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+select,input{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
 pre.yaml{margin:0;white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;color:#c6d3ec;max-height:640px;overflow:auto}
 .empty{color:var(--muted);padding:18px 4px}
+.authbar{display:none;background:#1c2948;border-bottom:1px solid var(--line);padding:10px 24px;align-items:center;gap:10px;flex-wrap:wrap}
+.authbar.on{display:flex}
 @media (max-width:1000px){.stand,.duo{grid-template-columns:1fr}nav{flex-wrap:wrap}}
 </style>
 </head>
@@ -84,15 +88,21 @@ pre.yaml{margin:0;white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;
     <div class="logo">AXI<span>SEC</span></div>
     <div class="sub">Детерминированный контроль действий ИИ-агентов</div>
   </div>
-  <span class="pill"><span class="dot"></span><span id="health">подключение…</span></span>
+  <span class="pill"><span class="dot" id="modeDot"></span><span id="health">подключение…</span></span>
   <nav>
     <button data-tab="stand" class="on">Стенд</button>
-    <button data-tab="monitor">Монитор</button>
+    <button data-tab="monitor">Монитор <span id="appBadge"></span></button>
     <button data-tab="check">Проверка вызова</button>
     <button data-tab="redteam">Red Team</button>
     <button data-tab="policy">Политика</button>
   </nav>
 </header>
+<div class="authbar" id="authBar">
+  <b>Требуется токен администратора:</b>
+  <input id="authTokenInput" type="password" placeholder="AXISEC_ADMIN_TOKEN" style="min-width:260px">
+  <button class="btn sm" id="authSave">Войти</button>
+  <span class="sub" id="authMsg"></span>
+</div>
 <main>
 
 <section id="stand" class="on">
@@ -118,10 +128,37 @@ pre.yaml{margin:0;white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;
   <h2>Монитор</h2>
   <p class="hint">Каждое решение шлюза в реальном времени: что агент хотел сделать, что решено и по какому правилу.</p>
   <div class="grid kpis" id="kpis"></div>
+  <div class="card" id="approvalsCard" style="margin-bottom:14px;display:none">
+    <div class="row" style="margin-top:0;justify-content:space-between">
+      <b>Очередь подтверждения человеком (Human-in-the-Loop)</b>
+      <span class="sub">Действия выше порога ждут решения оператора</span>
+    </div>
+    <div class="scroll"><table><thead><tr><th>ID</th><th>Инструмент</th><th>Аргументы</th><th>Правило и причина</th><th>Статус</th><th>Действие</th></tr></thead><tbody id="approvalsBody"></tbody></table></div>
+  </div>
   <div class="card">
     <div class="row" style="margin-top:0;justify-content:space-between">
       <b>Журнал решений</b>
-      <button class="btn ghost" id="clear">Очистить журнал</button>
+      <div class="row" style="margin:0">
+        <select id="fAction">
+          <option value="">Все решения</option>
+          <option value="block">Заблокировано</option>
+          <option value="would_block">Наблюдение: блок</option>
+          <option value="modify">Изменено</option>
+          <option value="approve">Ожидало апрува</option>
+          <option value="approved">Подтверждено</option>
+          <option value="mask">Скрыто (DLP)</option>
+          <option value="allow">Разрешено</option>
+        </select>
+        <select id="fChannel">
+          <option value="">Все каналы</option>
+          <option value="llm">llm</option>
+          <option value="mcp">mcp</option>
+          <option value="check">check</option>
+        </select>
+        <button class="btn ghost sm" id="expJsonl">JSONL</button>
+        <button class="btn ghost sm" id="expCef">CEF (SIEM)</button>
+        <button class="btn ghost sm" id="clear">Очистить</button>
+      </div>
     </div>
     <div class="scroll"><table><thead><tr><th>Время</th><th>Канал</th><th>Инструмент</th><th>Решение</th><th>Правило</th><th>Причина</th><th>OWASP</th><th>мкс</th></tr></thead><tbody id="events"></tbody></table></div>
   </div>
@@ -129,10 +166,11 @@ pre.yaml{margin:0;white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;
 
 <section id="check">
   <h2>Проверка вызова</h2>
-  <p class="hint">Введите вызов инструмента так, как его сформировала бы модель, и посмотрите решение. Попробуйте обойти защиту: регистр, комментарии, вложенные запросы.</p>
+  <p class="hint">Введите вызов инструмента так, как его сформировала бы модель, и посмотрите решение. Попробуйте обойти защиту: регистр, комментарии, вложенные запросы или новые проверки shell и путей.</p>
   <div class="card">
     <div class="row" style="margin-top:0">
       <select id="ctool"></select>
+      <select id="crole"><option value="">Роль: базовая</option></select>
       <span class="sub">аргументы в формате JSON</span>
     </div>
     <textarea id="cargs" spellcheck="false"></textarea>
@@ -153,9 +191,27 @@ pre.yaml{margin:0;white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;
 <section id="policy">
   <h2>Политика</h2>
   <p class="hint" id="pdesc"></p>
+  <div class="row">
+    <button class="btn ghost" id="toggleMode">Переключить режим (enforce / observe)</button>
+    <button class="btn ghost" id="reloadPolicy">Перезагрузить с диска</button>
+    <button class="btn" id="genDraft">Черновик политики из MCP</button>
+    <span class="sub" id="pmsg"></span>
+  </div>
   <div class="grid" style="grid-template-columns:minmax(260px,360px) 1fr;align-items:start">
-    <div class="card"><b>Инструменты</b><div id="ptools" style="margin-top:10px"></div></div>
-    <div class="card"><pre class="yaml" id="pyaml"></pre></div>
+    <div class="card">
+      <b>Инструменты</b><div id="ptools" style="margin-top:10px"></div>
+      <div id="prolesBox" style="margin-top:16px"></div>
+    </div>
+    <div class="card">
+      <pre class="yaml" id="pyaml"></pre>
+      <div id="draftWrap" style="display:none;margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
+        <div class="row" style="margin-top:0;justify-content:space-between">
+          <b>Сгенерированный черновик политики (observe)</b>
+          <button class="btn ghost sm" id="copyDraft">Скопировать YAML</button>
+        </div>
+        <pre class="yaml" id="pdraft"></pre>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -163,13 +219,40 @@ pre.yaml{margin:0;white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let adminToken = sessionStorage.getItem("axisec_admin_token") || "";
+const authHeaders = () => adminToken ? {"authorization": "Bearer " + adminToken} : {};
 const api = async (path, body) => {
-  const r = await fetch(path, body === undefined ? {} : {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(body)});
+  const opts = body === undefined
+    ? {headers: authHeaders()}
+    : {method: "POST", headers: {"content-type": "application/json", ...authHeaders()}, body: JSON.stringify(body)};
+  const r = await fetch(path, opts);
+  if (r.status === 401) {
+    $("authBar").classList.add("on");
+    throw new Error("Требуется авторизация");
+  }
   return r.json();
 };
-const ACTION = {block: "Заблокировано", allow: "Разрешено", modify: "Изменено", mask: "Скрыто", hide: "Скрыто"};
+const ACTION = {
+  block: "Заблокировано", allow: "Разрешено", modify: "Изменено", mask: "Скрыто", hide: "Скрыто",
+  would_block: "Набл: блок", would_modify: "Набл: правка", would_approve: "Набл: апрув",
+  would_mask: "Набл: DLP", would_hide: "Набл: скрыть",
+  approve: "Ждёт апрува", approved: "Подтверждено", pending: "Ожидает", rejected: "Отклонено", expired: "Истекло",
+};
 const badge = (a) => `<span class="badge b-${a}">${ACTION[a] || a}</span>`;
 const tags = (list) => (list || []).map((t) => `<span class="tag">${esc(t)}</span>`).join("");
+
+$("authSave").onclick = async () => {
+  adminToken = $("authTokenInput").value.trim();
+  sessionStorage.setItem("axisec_admin_token", adminToken);
+  $("authMsg").textContent = "";
+  try {
+    await initApp();
+    $("authBar").classList.remove("on");
+    connectStream();
+  } catch (e) {
+    $("authMsg").textContent = "Неверный токен";
+  }
+};
 
 // ---------- вкладки
 document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
@@ -219,28 +302,75 @@ $("runBoth").onclick = async () => {
   } finally { $("runBoth").disabled = false; }
 };
 
-// ---------- монитор
+// ---------- монитор и апрувы
 function eventRow(e) {
   const t = new Date(e.ts * 1000).toLocaleTimeString("ru-RU");
   const args = e.args && e.args.query ? e.args.query : JSON.stringify(e.args || {});
-  return `<tr><td class="mono">${t}</td><td>${esc(e.channel)}</td><td><code>${esc(e.tool)}</code><div class="sub mono">${esc(args.slice(0, 110))}</div></td><td>${badge(e.action)}</td><td><code>${esc(e.rule)}</code></td><td>${esc(e.reason)}</td><td>${tags(e.owasp)}</td><td class="mono">${e.latency_us ? Math.round(e.latency_us) : ""}</td></tr>`;
+  const src = e.source ? ` <span class="tag">${esc(e.source)}</span>` : "";
+  return `<tr><td class="mono">${t}</td><td>${esc(e.channel)}${src}</td><td><code>${esc(e.tool)}</code><div class="sub mono">${esc(args.slice(0, 110))}</div></td><td>${badge(e.action)}</td><td><code>${esc(e.rule)}</code></td><td>${esc(e.reason)}</td><td>${tags(e.owasp)}</td><td class="mono">${e.latency_us ? Math.round(e.latency_us) : ""}</td></tr>`;
 }
+async function decideApproval(id, ok) {
+  await api(`/api/approvals/${id}/${ok ? "approve" : "reject"}`, {});
+  refreshMonitor();
+}
+window.decideApproval = decideApproval;
 async function refreshMonitor() {
-  const [stats, events] = await Promise.all([api("/api/stats"), api("/api/events?limit=150")]);
+  const fa = $("fAction").value, fc = $("fChannel").value;
+  const qs = new URLSearchParams({limit: "150"});
+  if (fa) qs.set("action", fa);
+  if (fc) qs.set("channel", fc);
+  const [stats, events, approvals] = await Promise.all([
+    api("/api/stats"), api("/api/events?" + qs.toString()), api("/api/approvals"),
+  ]);
   const a = stats.actions || {};
+  const blocked = (a.block || 0) + (a.would_block || 0);
+  const modified = (a.modify || 0) + (a.would_modify || 0);
+  const hidden = (a.mask || 0) + (a.hide || 0) + (a.would_mask || 0) + (a.would_hide || 0);
   $("kpis").innerHTML = [
-    ["", stats.total, "решений в журнале"], ["red", a.block || 0, "заблокировано"], ["amber", a.modify || 0, "изменено (LIMIT)"],
-    ["", (a.mask || 0) + (a.hide || 0), "скрыто (DLP, инструменты)"], ["green", a.allow || 0, "разрешено"],
+    ["", stats.total, "решений в журнале"], ["red", blocked, "заблокировано / набл."], ["amber", modified, "изменено (LIMIT)"],
+    ["", hidden, "скрыто (DLP, инструменты)"], ["green", a.allow || 0, "разрешено"],
     ["teal", Math.round(stats.latency_us.p50) + " мкс", "проверка, медиана"], ["teal", Math.round(stats.latency_us.p95) + " мкс", "проверка, p95"],
   ].map(([c, v, l]) => `<div class="card kpi ${c}"><b>${v}</b><span>${l}</span></div>`).join("");
   $("events").innerHTML = events.map(eventRow).join("") || '<tr><td colspan="8" class="empty">Журнал пуст. Запустите сценарий на стенде.</td></tr>';
+  const pendingCount = approvals.filter((x) => x.status === "pending").length;
+  $("appBadge").innerHTML = pendingCount ? `<span class="badge b-pending">${pendingCount}</span>` : "";
+  if (approvals.length) {
+    $("approvalsCard").style.display = "block";
+    $("approvalsBody").innerHTML = approvals.slice(0, 20).map((it) => `<tr>
+      <td class="mono">${esc(it.id)}</td><td><code>${esc(it.tool)}</code></td>
+      <td class="mono">${esc(JSON.stringify(it.args || {}).slice(0, 100))}</td>
+      <td><code>${esc(it.rule)}</code> ${esc(it.reason)}</td>
+      <td>${badge(it.status)}</td>
+      <td>${it.status === "pending" ? `<button class="btn sm" onclick="decideApproval('${esc(it.id)}', true)">Подтвердить</button> <button class="btn danger sm" onclick="decideApproval('${esc(it.id)}', false)">Отклонить</button>` : esc(it.decided_by || "—")}</td>
+    </tr>`).join("");
+  } else {
+    $("approvalsCard").style.display = "none";
+  }
 }
+$("fAction").onchange = refreshMonitor;
+$("fChannel").onchange = refreshMonitor;
 $("clear").onclick = async () => { await api("/api/events/clear", {}); refreshMonitor(); };
-let pending = null;
-new EventSource("/api/stream").onmessage = () => {
-  if (!$("monitor").classList.contains("on") || pending) return;
-  pending = setTimeout(() => { pending = null; refreshMonitor(); }, 250);
-};
+async function downloadExport(fmt) {
+  const r = await fetch(`/api/events/export?format=${fmt}`, {headers: authHeaders()});
+  const text = await r.text();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type: "text/plain"}));
+  a.download = `axisec-audit.${fmt}`;
+  a.click();
+}
+$("expJsonl").onclick = () => downloadExport("jsonl");
+$("expCef").onclick = () => downloadExport("cef");
+
+let es = null, pending = null;
+function connectStream() {
+  if (es) es.close();
+  const url = adminToken ? `/api/stream?token=${encodeURIComponent(adminToken)}` : "/api/stream";
+  es = new EventSource(url);
+  es.onmessage = () => {
+    if (!$("monitor").classList.contains("on") || pending) return;
+    pending = setTimeout(() => { pending = null; refreshMonitor(); }, 250);
+  };
+}
 
 // ---------- проверка вызова
 const EXAMPLES = [
@@ -257,7 +387,7 @@ function setExample(tool, args) { $("ctool").value = tool; $("cargs").value = JS
 $("cbtn").onclick = async () => {
   let args;
   try { args = JSON.parse($("cargs").value || "{}"); } catch (e) { $("cres").innerHTML = '<div class="verdict bad">Аргументы не являются корректным JSON</div>'; return; }
-  const d = await api("/api/check", {tool: $("ctool").value, args});
+  const d = await api("/api/check", {tool: $("ctool").value, args, role: $("crole").value});
   const cls = d.action === "block" ? "bad" : "good";
   $("cres").innerHTML = `<div class="verdict ${cls}">${badge(d.action)} ${d.rule ? `<code>${esc(d.rule)}</code>` : ""} ${esc(d.reason || "Вызов соответствует политике")}
     <div style="margin-top:8px;font-weight:500">${tags(d.owasp)} <span class="sub">проверка заняла ${Math.round(d.latency_us)} мкс</span></div>
@@ -287,18 +417,59 @@ $("rtbtn").onclick = async () => {
   } finally { $("rtbtn").disabled = false; }
 };
 
+// ---------- политика
+let currentMode = "enforce";
+function updateHeader(h) {
+  currentMode = h.mode || "enforce";
+  $("modeDot").classList.toggle("obs", currentMode === "observe");
+  const modeLabel = currentMode === "observe" ? "НАБЛЮДЕНИЕ" : "ЗАЩИТА";
+  $("health").textContent = `политика «${h.policy}» · ${modeLabel} · v${h.version}`;
+}
+$("toggleMode").onclick = async () => {
+  const next = currentMode === "enforce" ? "observe" : "enforce";
+  await api("/api/policy/mode", {mode: next});
+  const h = await api("/api/health");
+  updateHeader(h);
+  $("pmsg").textContent = `Режим изменён на ${next}`;
+};
+$("reloadPolicy").onclick = async () => {
+  const r = await api("/api/policy/reload", {});
+  $("pmsg").textContent = r.ok ? `Перезагружена политика «${r.policy}» (${r.tools} инструментов)` : (r.error || "Ошибка");
+  await initApp();
+};
+$("genDraft").onclick = async () => {
+  const d = await api("/api/policy/draft", {use_audit: true});
+  $("draftWrap").style.display = "block";
+  $("pdraft").textContent = d.yaml;
+  $("pmsg").textContent = `Черновик создан (${d.tools_count} инструментов)`;
+};
+$("copyDraft").onclick = () => navigator.clipboard && navigator.clipboard.writeText($("pdraft").textContent);
+
 // ---------- старт
-(async () => {
-  const [h, p, sc] = await Promise.all([api("/api/health"), api("/api/policy"), api("/api/demo/scenarios")]);
-  $("health").textContent = `политика «${h.policy}» · v${h.version}`;
-  $("pdesc").textContent = `${p.description} Действие по умолчанию: ${p.default_action === "deny" ? "запрет" : "разрешение"}.`;
+async function initApp() {
+  const h = await fetch("/api/health").then((r) => r.json());
+  updateHeader(h);
+  if (h.auth_required && !adminToken) $("authBar").classList.add("on");
+  const [p, sc] = await Promise.all([api("/api/policy"), api("/api/demo/scenarios")]);
+  $("pdesc").textContent = `${p.description} Действие по умолчанию: ${p.default_action === "deny" ? "запрет" : "разрешение"}. Режим: ${p.mode}.`;
   $("pyaml").textContent = p.yaml;
-  $("ptools").innerHTML = p.tools.map((t) => `<div style="margin:8px 0">${badge(t.action === "deny" ? "block" : "allow")} <code>${esc(t.name)}</code><div class="sub">${esc(t.description)}</div></div>`).join("");
+  $("ptools").innerHTML = p.tools.map((t) => `<div style="margin:8px 0">${badge(t.action === "deny" ? "block" : (t.action === "approve" ? "approve" : "allow"))} <code>${esc(t.name)}</code><div class="sub">${esc(t.description)}</div></div>`).join("");
+  const roleKeys = Object.keys(p.roles || {});
+  $("prolesBox").innerHTML = roleKeys.length
+    ? `<b>Роли (RBAC)</b>` + roleKeys.map((rk) => `<div style="margin:6px 0"><code>${esc(rk)}</code><div class="sub">${esc(p.roles[rk].description || "")}</div></div>`).join("")
+    : "";
+  $("crole").innerHTML = '<option value="">Роль: базовая</option>' + roleKeys.map((rk) => `<option>${esc(rk)}</option>`).join("");
   $("ctool").innerHTML = p.tools.map((t) => `<option>${esc(t.name)}</option>`).join("") + "<option>exec_shell</option>";
   $("examples").innerHTML = EXAMPLES.map((e, i) => `<button class="btn ghost" data-i="${i}">${esc(e[0])}</button>`).join("");
   $("examples").querySelectorAll("button").forEach((b) => b.onclick = () => setExample(EXAMPLES[b.dataset.i][1], EXAMPLES[b.dataset.i][2]));
   setExample(EXAMPLES[0][1], EXAMPLES[0][2]);
-  scenarios = sc; select("A01");
+  scenarios = sc; select(current ? current.id : "A01");
+}
+(async () => {
+  try {
+    await initApp();
+    connectStream();
+  } catch (e) { /* ожидаем ввод токена в authBar */ }
 })();
 </script>
 </body>

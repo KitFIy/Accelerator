@@ -9,8 +9,10 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit
 
-from ..policy import ArgRule, ToolPolicy
+from ..policy import ArgRule, PathRules, ShellRules, ToolPolicy
 from . import dlp
+from .path import check_path
+from .shell import check_shell
 from .sql import check_sql
 
 _EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})")
@@ -20,6 +22,7 @@ _EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})")
 class Violation:
     rule: str
     reason: str
+    action: str = "block"  # block | approve
 
 
 def _host_allowed(host: str, allow: list[str]) -> bool:
@@ -63,7 +66,7 @@ def _check_url(name: str, value: str, rule: ArgRule) -> Violation | None:
 
 
 def _type_ok(value: Any, t: str) -> bool:
-    if t in ("string", "url", "email", "sql"):
+    if t in ("string", "url", "email", "sql", "shell", "path"):
         return isinstance(value, str)
     if t == "integer":
         return isinstance(value, int) and not isinstance(value, bool)
@@ -84,6 +87,7 @@ def check_args(args: Any, tool: ToolPolicy) -> tuple[Violation | None, dict | No
         return Violation("args.type", "Аргументы вызова должны быть объектом"), None, []
     notes: list[str] = []
     new_args: dict | None = None
+    pending_approval: Violation | None = None
 
     if not tool.allow_extra_args:
         extra = sorted(set(args) - set(tool.args))
@@ -108,6 +112,12 @@ def check_args(args: Any, tool: ToolPolicy) -> tuple[Violation | None, dict | No
                 return Violation(f"args.{name}.min", f"«{name}» = {value} меньше допустимого {rule.min:g}"), None, notes
             if rule.max is not None and value > rule.max:
                 return Violation(f"args.{name}.max", f"«{name}» = {value} больше допустимого {rule.max:g}"), None, notes
+            if rule.approve_above is not None and value > rule.approve_above and pending_approval is None:
+                pending_approval = Violation(
+                    f"args.{name}.approve_above",
+                    f"«{name}» = {value} превышает порог {rule.approve_above:g} и требует подтверждения",
+                    action="approve",
+                )
         if isinstance(value, str):
             if rule.max_length is not None and len(value) > rule.max_length:
                 return Violation(f"args.{name}.max_length",
@@ -131,10 +141,20 @@ def check_args(args: Any, tool: ToolPolicy) -> tuple[Violation | None, dict | No
                 return Violation(f"args.{name}.sql", "Для SQL-аргумента не заданы правила"), None, notes
             if not verdict.ok:
                 return Violation(verdict.rule, verdict.reason), None, notes
+            if verdict.rule == "sql.approve" and pending_approval is None:
+                pending_approval = Violation("sql.approve", verdict.reason, action="approve")
             if verdict.new_sql is not None:
                 new_args = dict(new_args or args)
                 new_args[name] = verdict.new_sql
                 notes.append(f"В запрос добавлено ограничение LIMIT {rule.sql.max_rows}")
+        if rule.type == "shell":
+            s_verdict = check_shell(value, rule.shell or ShellRules())
+            if not s_verdict.ok:
+                return Violation(s_verdict.rule, s_verdict.reason), None, notes
+        if rule.type == "path":
+            p_verdict = check_path(value, rule.path or PathRules())
+            if not p_verdict.ok:
+                return Violation(p_verdict.rule, p_verdict.reason), None, notes
         if rule.dlp != "off":
             text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
             findings = dlp.scan(text, rule.dlp_detectors)
@@ -147,4 +167,6 @@ def check_args(args: Any, tool: ToolPolicy) -> tuple[Violation | None, dict | No
                     new_args = dict(new_args or args)
                     new_args[name] = dlp.mask(value, rule.dlp_detectors)[0]
                     notes.append(f"В аргументе «{name}» скрыты данные: {types}")
+    if pending_approval is not None:
+        return pending_approval, new_args, notes
     return None, new_args, notes
